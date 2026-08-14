@@ -37,11 +37,10 @@ input:focus,select:focus{outline:none;border-color:var(--verde-500);background:#
 .alert{margin-top:14px;padding:11px 13px;border-radius:9px;font-size:12.8px;line-height:1.5;display:none}.alert.show{display:block}.alert.warn{background:var(--ambar-bg);color:#8a4322;border:1px solid #e8c4ad}.alert.ok{background:var(--verde-100);color:var(--verde-800);border:1px solid var(--verde-200)}
 .btn{border:none;cursor:pointer;font-family:Outfit,sans-serif;font-weight:600;font-size:14px;border-radius:9px;padding:11px 15px}.btn-primary{width:100%;margin-top:22px;background:var(--verde-600);color:#fff}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
 .btn-ghost{background:transparent;color:var(--verde-700);border:1.5px solid var(--linea);font-size:13px;padding:8px 12px}.btn-danger{background:#fff1ed;color:#9a3e25;border:1px solid #f0c2b4}
-.sched-card{padding:22px}.sched-card h3{font-size:14.5px}.sched-grid{display:grid;grid-template-columns:auto 1fr;font-size:12px}.sched-day{font-family:'IBM Plex Mono',monospace;color:var(--verde-800);padding:8px 10px 8px 0;border-bottom:1px solid var(--linea)}
-.sched-bar-wrap{padding:8px 0;border-bottom:1px solid var(--linea)}.sched-track{position:relative;height:16px;background:var(--verde-050);border-radius:5px;overflow:hidden}.sched-block{position:absolute;top:0;bottom:0;background:var(--ambar);opacity:.75}
+.sched-card{padding:22px}.sched-card h3{font-size:14.5px}.sched-list{display:grid;gap:8px;margin-top:12px}.sched-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 12px;border:1px solid var(--linea);background:var(--verde-050);border-radius:9px}.sched-day{font-family:'IBM Plex Mono',monospace;color:var(--verde-800);font-size:12px;font-weight:600}.sched-hours{font-size:12.5px;color:var(--tinta);text-align:right}.duration-note{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--verde-050);border:1px solid var(--linea);font-size:12px;color:var(--tinta-suave);line-height:1.45}
 .list-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin:34px 0 14px}.list-head h2{font-size:19px}.filters{display:flex;gap:8px;flex-wrap:wrap}.filters select,.filters input{width:auto;padding:8px 10px;font-size:13px}
 .table-card{overflow:hidden}table{width:100%;border-collapse:collapse;font-size:13.5px}thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--verde-700);background:var(--verde-050);padding:11px 12px;border-bottom:1px solid var(--linea)}
-tbody td{padding:12px;border-bottom:1px solid var(--linea);vertical-align:top}.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}.tag-compleja{background:#fbe9de;color:#a8552b}.tag-simple{background:var(--verde-100);color:var(--verde-800)}
+tbody td{padding:12px;border-bottom:1px solid var(--linea);vertical-align:top}.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}.tag-compleja{background:#fbe9de;color:#a8552b}.tag-simple{background:var(--verde-100);color:var(--verde-800)}.tag-pendiente{background:#fff4d6;color:#8a5b00;border:1px solid #f0d48b}.tag-autorizada{background:#e6f3eb;color:#1b5b3f;border:1px solid #b9ddc8}.auth-btn{border:1px solid var(--linea);background:#fff;border-radius:7px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;color:var(--verde-700)}.auth-btn:hover{background:var(--verde-050)}
 .cell-fecha{font-family:'IBM Plex Mono',monospace;font-size:12.5px;white-space:nowrap}.hora{display:block;color:var(--tinta-suave);font-size:11.5px}.done{opacity:.55}.actions{display:flex;gap:5px;flex-wrap:wrap}.icon-btn{border:none;background:transparent;cursor:pointer;padding:5px 7px;border-radius:6px;font-size:15px}.empty{text-align:center;padding:48px 20px;color:var(--tinta-suave)}
 .rolebar{max-width:1180px;margin:0 auto 14px;padding:0 20px}.rolebox{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--linea);border-radius:10px;padding:10px 14px;box-shadow:var(--sombra)}
 .badge{font-size:12px;font-weight:700;border-radius:20px;padding:5px 10px}.badge-admin{background:#e6f3eb;color:#1b5b3f}.badge-reg{background:#eef4ff;color:#2f5fd6}
@@ -86,9 +85,12 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
    <div class="sub" id="form-sub">Completa los datos para reservar sala y horario.</div>
    <form id="form">
     <select id="f-tipo" required><option value="" disabled selected>Descripción del proceso…</option><option>Cirugía Compleja</option><option>Cirugía Simple</option></select>
+    <div class="duration-note"><strong>Duración por sillón:</strong> Cirugía compleja = 1 h 30 min · Cirugía simple = 30 min.<br><strong>Orden de registro:</strong> cada sillón lleva su propia cola; una nueva cirugía solo puede programarse desde que termine la última registrada en ese mismo sillón.</div>
     <div class="row2"><div><label>Fecha <span class="req">*</span></label><input type="date" id="f-fecha" required></div><div><label>Hora <span class="req">*</span></label><input type="time" id="f-hora" required></div></div>
     <label>Cirujano supervisor <span class="req">*</span></label>
     <select id="f-doctor" required><option value="" disabled selected>Seleccionar…</option><option>Dr. Baldarrago</option><option>Dra. Portilla</option><option>Dr. Arce</option><option>Dr. Calle</option><option>Dr. Alpaca</option></select>
+    <label>Semestre <span class="req">*</span></label>
+    <select id="f-semestre" required><option value="" disabled selected>Seleccionar semestre…</option><option>VIII Semestre</option><option>X Semestre</option></select>
     <label>Sala de cirugía — sillón <span class="req">*</span></label>
     <div class="chair-picker" id="chair-picker">
       <div class="chair-btn c-naranja" data-chair="1">Sillón 1<small>disponible</small></div>
@@ -110,32 +112,36 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
    <div class="card sched-card">
     <h3>Horario de Especialidad de Periodoncia</h3>
     <div class="sub">En estos bloques, los sillones 1 y 2 quedan reservados para Periodoncia. Los sillones 3 y 4 siguen disponibles para pregrado.</div>
-    <div class="sched-grid" id="sched-grid"></div>
+    <div class="sched-list" id="sched-grid"></div>
    </div>
    <div class="list-head"><h2>Cirugías programadas</h2>
     <div class="filters">
       <input type="date" id="filter-fecha"><select id="filter-doctor"><option value="">Todos los cirujanos</option><option>Dr. Baldarrago</option><option>Dra. Portilla</option><option>Dr. Arce</option><option>Dr. Calle</option><option>Dr. Alpaca</option></select>
-      <select id="filter-estado"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="realizadas">Realizadas</option></select><button class="btn btn-ghost" id="clear">Limpiar</button>
+      <select id="filter-semestre"><option value="">Todos los semestres</option><option>VIII Semestre</option><option>X Semestre</option></select><select id="filter-estado"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="realizadas">Realizadas</option></select><select id="filter-aut"><option value="">Autorización: todas</option><option value="Pendiente">Pendientes</option><option value="Autorizada">Autorizadas</option></select><button class="btn btn-ghost" id="clear">Limpiar</button>
     </div>
    </div>
-   <div class="card table-card"><table><thead><tr><th>Fecha / hora</th><th>Proceso</th><th>Sala</th><th>Cirujano</th><th>Alumno</th><th>Asistente</th><th>Paciente</th><th>Dx</th><th></th></tr></thead><tbody id="tbody"><tr><td colspan="9" class="empty">Inicia sesión para cargar los registros.</td></tr></tbody></table></div>
+   <div class="card table-card"><table><thead><tr><th>Fecha / hora</th><th>Proceso</th><th>Sala</th><th>Cirujano</th><th>Semestre</th><th>Alumno</th><th>Asistente</th><th>Paciente</th><th>Dx</th><th>Autorización</th><th></th></tr></thead><tbody id="tbody"><tr><td colspan="11" class="empty">Inicia sesión para cargar los registros.</td></tr></tbody></table></div>
   </div>
  </div>
 </div>
-<footer>Registro compartido en la nube. El modo Registro solo permite agregar nuevas cirugías; el Administrador puede editar y eliminar.</footer>
+<footer>Registro compartido en la nube. El modo Registro permite agregar nuevas cirugías, que quedan Pendientes; el Administrador puede autorizar, editar, marcar como realizada y eliminar.</footer>
 <div class="toast" id="toast"></div>
 
 <script>
 const API = "https://smizdwogscznptgacyor.supabase.co/functions/v1/cirugias-api";
 const PERIODONCIA=[{day:1,blocks:[[510,870]]},{day:2,blocks:[[510,990]]},{day:3,blocks:[[510,750],[840,960]]}];
 const DAY_NAMES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DURATIONS={'Cirugía Compleja':90,'Cirugía Simple':30};
 let KEY='',ROLE='',ALL=[],selectedChair=null,editingId=null,poll=null;
 
-function toMin(h){const [a,b]=h.split(':').map(Number);return a*60+b}
+function toMin(h){const [a,b]=String(h).slice(0,5).split(':').map(Number);return a*60+b}
+function durationFor(tipo){return DURATIONS[tipo]||0}
+function overlaps(a1,a2,b1,b2){return a1<b2&&a2>b1}
 function weekday(f){return new Date(f+'T00:00:00').getDay()}
-function pBlock(f,h){if(!f||!h)return null;const e=PERIODONCIA.find(x=>x.day===weekday(f));if(!e)return null;const m=toMin(h);const b=e.blocks.find(([a,z])=>m>=a&&m<z);return b?{day:e.day,block:b}:null}
-function fmtMin(m){let h=Math.floor(m/60),mm=m%60,ap=h>=12?'pm':'am';let hh=h%12||12;return `${hh}:${String(mm).padStart(2,'0')}${ap}`}
-function renderSched(){const g=document.getElementById('sched-grid');let s='';for(const d of [1,2,3]){const e=PERIODONCIA.find(x=>x.day===d);s+=`<div class="sched-day">${DAY_NAMES[d].slice(0,3)}</div>`;let b='';for(const [a,z] of e.blocks){const l=((a-480)/540)*100,w=((z-a)/540)*100;b+=`<div class="sched-block" style="left:${l}%;width:${w}%" title="${fmtMin(a)}–${fmtMin(z)}"></div>`}s+=`<div class="sched-bar-wrap"><div class="sched-track">${b}</div></div>`}g.innerHTML=s}
+function pBlock(f,h,tipo){if(!f||!h||!tipo)return null;const e=PERIODONCIA.find(x=>x.day===weekday(f));if(!e)return null;const start=toMin(h),end=start+durationFor(tipo);const b=e.blocks.find(([a,z])=>overlaps(start,end,a,z));return b?{day:e.day,block:b}:null}
+function fmtMin(m){let h=Math.floor(m/60)%24,mm=m%60,ap=h>=12?'p. m.':'a. m.';let hh=h%12||12;return `${hh}:${String(mm).padStart(2,'0')} ${ap}`}
+function fmt24(m){m=((m%1440)+1440)%1440;return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
+function renderSched(){const g=document.getElementById('sched-grid');g.innerHTML=PERIODONCIA.map(e=>`<div class="sched-row"><span class="sched-day">${DAY_NAMES[e.day]}</span><span class="sched-hours">${e.blocks.map(([a,z])=>`${fmtMin(a)} – ${fmtMin(z)}`).join(' · ')}</span></div>`).join('')}
 renderSched();
 
 async function request(method='GET',body=null,id=null){
@@ -156,7 +162,7 @@ async function login(){
 function applyRole(){
  const admin=ROLE==='admin';
  document.getElementById('role-title').textContent=admin?'Administrador':'Registro';
- document.getElementById('role-help').textContent=admin?'Puede agregar, editar, marcar como realizada y eliminar registros.':'Puede ver la agenda y agregar nuevas cirugías. No puede modificar ni eliminar registros existentes.';
+ document.getElementById('role-help').textContent=admin?'Puede agregar, autorizar, editar, marcar como realizada y eliminar registros.':'Puede ver la agenda y agregar nuevas cirugías. Las nuevas quedan Pendientes hasta que el Administrador las autorice.';
  const b=document.getElementById('role-badge');b.textContent=admin?'CONTROL TOTAL':'SOLO AGREGAR';b.className='badge '+(admin?'badge-admin':'badge-reg')
 }
 function logout(){KEY='';ROLE='';ALL=[];editingId=null;sessionStorage.removeItem('cirugia_key');clearInterval(poll);document.getElementById('access-key').value='';document.getElementById('login').style.display='flex'}
@@ -165,17 +171,28 @@ document.getElementById('login-btn').onclick=login;document.getElementById('acce
 const chairs=[...document.querySelectorAll('.chair-btn')];
 function resetChairs(){selectedChair=null;chairs.forEach(b=>{b.classList.remove('selected','blocked','taken');b.querySelector('small').textContent='disponible'})}
 function refreshChair(){
- const f=document.getElementById('f-fecha').value,h=document.getElementById('f-hora').value;const w=document.getElementById('alert-warn'),ok=document.getElementById('alert-ok');w.classList.remove('show');ok.classList.remove('show');resetChairs();if(!f||!h)return;
- const p=pBlock(f,h);if(p){chairs.filter(b=>['1','2'].includes(b.dataset.chair)).forEach(b=>{b.classList.add('blocked');b.querySelector('small').textContent='Periodoncia'});w.textContent=`Sillones 1 y 2 reservados para Periodoncia ese ${DAY_NAMES[p.day]} de ${fmtMin(p.block[0])} a ${fmtMin(p.block[1])}.`;w.classList.add('show')}
- const taken=ALL.filter(x=>x.id!==editingId&&x.fecha===f&&String(x.hora).slice(0,5)===h).map(x=>String(x.sillon));
- chairs.forEach(b=>{if(taken.includes(b.dataset.chair)){b.classList.remove('blocked');b.classList.add('taken');b.querySelector('small').textContent='ocupado'}});
- const free=chairs.filter(b=>!b.classList.contains('blocked')&&!b.classList.contains('taken')).length;if(free&&!p){ok.textContent=`${free} de 4 sillones disponibles.`;ok.classList.add('show')}
+ const f=document.getElementById('f-fecha').value,h=document.getElementById('f-hora').value,tipo=document.getElementById('f-tipo').value;const w=document.getElementById('alert-warn'),ok=document.getElementById('alert-ok');w.classList.remove('show');ok.classList.remove('show');resetChairs();if(!f||!h)return;
+ if(!tipo){w.textContent='Selecciona el tipo de cirugía para calcular el tiempo de ocupación del sillón.';w.classList.add('show');return}
+ const start=toMin(h),end=start+durationFor(tipo);
+ const p=pBlock(f,h,tipo);if(p){chairs.filter(b=>['1','2'].includes(b.dataset.chair)).forEach(b=>{b.classList.add('blocked');b.querySelector('small').textContent='Periodoncia'});w.textContent=`La cirugía ocuparía el sillón de ${fmtMin(start)} a ${fmtMin(end)} y se cruza con Periodoncia (${DAY_NAMES[p.day]} ${fmtMin(p.block[0])} – ${fmtMin(p.block[1])}) en los sillones 1 y 2.`;w.classList.add('show')}
+ chairs.forEach(b=>{
+   const ch=b.dataset.chair;
+   const same=ALL.filter(x=>x.id!==editingId&&x.fecha===f&&String(x.sillon)===ch);
+   const latestEnd=same.length?Math.max(...same.map(x=>toMin(x.hora)+durationFor(x.tipo))):null;
+   const queueBlocked=!editingId&&latestEnd!==null&&start<latestEnd;
+   const conflict=same.find(x=>overlaps(start,end,toMin(x.hora),toMin(x.hora)+durationFor(x.tipo)));
+   if(queueBlocked||conflict){
+     b.classList.remove('blocked');b.classList.add('taken');
+     b.querySelector('small').textContent=queueBlocked?`desde ${fmt24(latestEnd)}`:`ocupado hasta ${fmt24(toMin(conflict.hora)+durationFor(conflict.tipo))}`;
+   }
+ });
+ const free=chairs.filter(b=>!b.classList.contains('blocked')&&!b.classList.contains('taken')).length;if(free&&!p){ok.textContent=`${free} de 4 sillones disponibles para ${fmtMin(start)} – ${fmtMin(end)}. Cada sillón respeta su propio orden de registro.`;ok.classList.add('show')}
 }
 chairs.forEach(b=>b.onclick=()=>{if(b.classList.contains('blocked')||b.classList.contains('taken'))return;chairs.forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedChair=b.dataset.chair});
-['f-fecha','f-hora'].forEach(id=>document.getElementById(id).addEventListener('change',refreshChair));
+['f-tipo','f-fecha','f-hora'].forEach(id=>document.getElementById(id).addEventListener('change',refreshChair));
 
 function formData(){
- return {tipo:document.getElementById('f-tipo').value,fecha:document.getElementById('f-fecha').value,hora:document.getElementById('f-hora').value,doctor:document.getElementById('f-doctor').value,sillon:selectedChair,alumno:document.getElementById('f-alumno').value.trim(),asistente:document.getElementById('f-asistente').value.trim(),paciente:document.getElementById('f-paciente').value.trim(),dx:document.getElementById('f-dx').value.trim()}
+ return {tipo:document.getElementById('f-tipo').value,fecha:document.getElementById('f-fecha').value,hora:document.getElementById('f-hora').value,doctor:document.getElementById('f-doctor').value,sillon:selectedChair,semestre:document.getElementById('f-semestre').value,alumno:document.getElementById('f-alumno').value.trim(),asistente:document.getElementById('f-asistente').value.trim(),paciente:document.getElementById('f-paciente').value.trim(),dx:document.getElementById('f-dx').value.trim()}
 }
 function clearForm(){document.getElementById('form').reset();resetChairs();editingId=null;document.getElementById('form-title').textContent='Nueva cirugía';document.getElementById('form-sub').textContent='Completa los datos para reservar sala y horario.';document.getElementById('save-btn').textContent='Programar cirugía';document.getElementById('cancel-edit').style.display='none'}
 document.getElementById('cancel-edit').onclick=clearForm;
@@ -192,16 +209,17 @@ document.getElementById('form').onsubmit=async e=>{
 async function load(){const d=await request();ROLE=d.role;ALL=d.items||[];applyRole();renderTable();refreshChair()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function renderTable(){
- let a=[...ALL],ff=document.getElementById('filter-fecha').value,fd=document.getElementById('filter-doctor').value,fe=document.getElementById('filter-estado').value;
- if(ff)a=a.filter(x=>x.fecha===ff);if(fd)a=a.filter(x=>x.doctor===fd);const td=new Date().toISOString().slice(0,10);if(fe==='proximas')a=a.filter(x=>!x.realizada&&x.fecha>=td);if(fe==='realizadas')a=a.filter(x=>x.realizada);
+ let a=[...ALL],ff=document.getElementById('filter-fecha').value,fd=document.getElementById('filter-doctor').value,fs=document.getElementById('filter-semestre').value,fe=document.getElementById('filter-estado').value,fa=document.getElementById('filter-aut').value;
+ if(ff)a=a.filter(x=>x.fecha===ff);if(fd)a=a.filter(x=>x.doctor===fd);if(fs)a=a.filter(x=>x.semestre===fs);if(fa)a=a.filter(x=>(x.autorizacion||'Pendiente')===fa);const td=new Date().toISOString().slice(0,10);if(fe==='proximas')a=a.filter(x=>!x.realizada&&x.fecha>=td);if(fe==='realizadas')a=a.filter(x=>x.realizada);
  a.sort((x,y)=>(x.fecha+String(x.hora)).localeCompare(y.fecha+String(y.hora)));const tb=document.getElementById('tbody');
- if(!a.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><strong>Sin cirugías registradas</strong><br>Ajusta los filtros o registra una nueva cirugía.</div></td></tr>';return}
- const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';let act='';if(admin)act=`<div class="actions"><button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;return `<tr class="${x.realizada?'done':''}"><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${String(x.hora).slice(0,5)}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td>${act}</td></tr>`}).join('')
+ if(!a.length){tb.innerHTML='<tr><td colspan="11"><div class="empty"><strong>Sin cirugías registradas</strong><br>Ajusta los filtros o registra una nueva cirugía.</div></td></tr>';return}
+ const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';const ini=toMin(x.hora),fin=ini+durationFor(x.tipo);const aut=x.autorizacion||'Pendiente';const autCls=aut==='Autorizada'?'tag-autorizada':'tag-pendiente';let act='';if(admin)act=`<div class="actions"><button class="auth-btn" onclick="toggleAuth('${x.id}')" title="Cambiar autorización">${aut==='Autorizada'?'Volver a pendiente':'Autorizar'}</button><button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;return `<tr class="${x.realizada?'done':''}"><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${fmt24(ini)}–${fmt24(fin)}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Semestre">${esc(x.semestre)||'—'}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td data-label="Autorización"><span class="tag ${autCls}">${aut}</span></td><td>${act}</td></tr>`}).join('')
 }
-window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
+window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','semestre','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
+window.toggleAuth=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;const next=(x.autorizacion||'Pendiente')==='Autorizada'?'Pendiente':'Autorizada';try{await request('PATCH',{id,autorizacion:next});showToast(next==='Autorizada'?'Cirugía autorizada.':'Cirugía devuelta a Pendiente.');await load()}catch(e){showToast(e.message,true)}}
 window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);try{await request('PATCH',{id,realizada:!x.realizada});showToast('Estado actualizado.');await load()}catch(e){showToast(e.message,true)}}
 window.delItem=async id=>{if(ROLE!=='admin'||!confirm('¿Eliminar esta cirugía del registro?'))return;try{await request('DELETE',null,id);showToast('Registro eliminado.');await load()}catch(e){showToast(e.message,true)}}
-['filter-fecha','filter-doctor','filter-estado'].forEach(id=>document.getElementById(id).onchange=renderTable);document.getElementById('clear').onclick=()=>{document.getElementById('filter-fecha').value='';document.getElementById('filter-doctor').value='';document.getElementById('filter-estado').value='todas';renderTable()}
+['filter-fecha','filter-doctor','filter-semestre','filter-estado','filter-aut'].forEach(id=>document.getElementById(id).onchange=renderTable);document.getElementById('clear').onclick=()=>{document.getElementById('filter-fecha').value='';document.getElementById('filter-doctor').value='';document.getElementById('filter-semestre').value='';document.getElementById('filter-estado').value='todas';document.getElementById('filter-aut').value='';renderTable()}
 function startPoll(){clearInterval(poll);poll=setInterval(()=>load().catch(()=>{}),10000)}
 (async()=>{const saved=sessionStorage.getItem('cirugia_key');if(saved){KEY=saved;try{const d=await request();ROLE=d.role;ALL=d.items||[];document.getElementById('login').style.display='none';applyRole();renderTable();startPoll()}catch{sessionStorage.removeItem('cirugia_key')}}})();
 </script>
