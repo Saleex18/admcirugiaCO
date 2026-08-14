@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registro de Cirugías Bucales · Centro Odontológico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+ --verde-950:#0d2b1f;--verde-900:#123a29;--verde-800:#1b4d36;--verde-700:#245e42;
+ --verde-600:#2d6a4f;--verde-500:#40916c;--verde-400:#63b590;--verde-200:#bfe3d0;
+ --verde-100:#dcf0e5;--verde-050:#f2faf5;--hueso:#faf8f3;--tinta:#122019;
+ --tinta-suave:#4a5c53;--ambar:#c96a3a;--ambar-bg:#fbe9de;--linea:#cfe4d8;
+ --blanco:#fff;--sombra:0 1px 2px rgba(13,43,31,.06),0 6px 20px rgba(13,43,31,.08);--radio:12px
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--hueso);background-image:radial-gradient(circle at 1px 1px,rgba(45,106,79,.09) 1px,transparent 0);background-size:22px 22px;color:var(--tinta);font-family:Inter,system-ui,sans-serif;min-height:100vh}
+h1,h2,h3{font-family:Outfit,sans-serif;margin:0;color:var(--verde-950)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+.top{background:linear-gradient(160deg,var(--verde-900),var(--verde-700));color:var(--verde-050);padding:34px 20px 46px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 70%)}
+.top-inner{max-width:1180px;margin:auto;position:relative;z-index:1}.top .eyebrow{color:var(--verde-200)}
+.top h1{color:#fff;font-size:clamp(24px,3.4vw,34px);margin-top:6px}.top p{color:var(--verde-100);max-width:700px;margin-top:10px;font-size:14.5px;line-height:1.55}
+.wrap{max-width:1180px;margin:auto;padding:0 20px 80px}.grid{display:grid;grid-template-columns:1fr;gap:22px;margin-top:-28px}
+@media(min-width:980px){.grid{grid-template-columns:400px 1fr;align-items:start}}
+.card{background:#fff;border:1px solid var(--linea);border-radius:var(--radio);box-shadow:var(--sombra)}
+.form-card{padding:26px 24px 24px}.form-card h2{font-size:19px}.sub{color:var(--tinta-suave);font-size:13px;margin-top:4px;margin-bottom:20px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--verde-800);margin-bottom:6px;margin-top:16px}.req{color:var(--ambar)}
+input,select{width:100%;border:1.5px solid var(--linea);background:var(--verde-050);border-radius:9px;padding:10px 12px;font-size:14.5px;font-family:inherit;color:var(--tinta)}
+input:focus,select:focus{outline:none;border-color:var(--verde-500);background:#fff;box-shadow:0 0 0 3px var(--verde-200)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.chair-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.chair-btn{border:1.5px solid var(--linea);background:#fff;border-radius:9px;padding:10px 4px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12.5px;cursor:pointer;color:var(--tinta-suave)}
+.chair-btn small{display:block;font-size:9.5px;margin-top:2px}.chair-btn.c-naranja{border-color:#f3b98a;background:#fff3ea;color:#b45309}.chair-btn.c-azul{border-color:#a9c4f5;background:#eef4ff;color:#1d4ed8}
+.chair-btn.selected.c-naranja{background:#e8781d;border-color:#e8781d;color:#fff}.chair-btn.selected.c-azul{background:#2f5fd6;border-color:#2f5fd6;color:#fff}
+.chair-btn.blocked{background:var(--ambar-bg);border-color:#e8c4ad;color:#a8552b;cursor:not-allowed}.chair-btn.taken{background:#f1f1ee;border-color:#ddd;color:#9a9a92;cursor:not-allowed;text-decoration:line-through}
+.alert{margin-top:14px;padding:11px 13px;border-radius:9px;font-size:12.8px;line-height:1.5;display:none}.alert.show{display:block}.alert.warn{background:var(--ambar-bg);color:#8a4322;border:1px solid #e8c4ad}.alert.ok{background:var(--verde-100);color:var(--verde-800);border:1px solid var(--verde-200)}
+.btn{border:none;cursor:pointer;font-family:Outfit,sans-serif;font-weight:600;font-size:14px;border-radius:9px;padding:11px 15px}.btn-primary{width:100%;margin-top:22px;background:var(--verde-600);color:#fff}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--verde-700);border:1.5px solid var(--linea);font-size:13px;padding:8px 12px}.btn-danger{background:#fff1ed;color:#9a3e25;border:1px solid #f0c2b4}
+.sched-card{padding:22px}.sched-card h3{font-size:14.5px}.sched-grid{display:grid;grid-template-columns:auto 1fr;font-size:12px}.sched-day{font-family:'IBM Plex Mono',monospace;color:var(--verde-800);padding:8px 10px 8px 0;border-bottom:1px solid var(--linea)}
+.sched-bar-wrap{padding:8px 0;border-bottom:1px solid var(--linea)}.sched-track{position:relative;height:16px;background:var(--verde-050);border-radius:5px;overflow:hidden}.sched-block{position:absolute;top:0;bottom:0;background:var(--ambar);opacity:.75}
+.list-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin:34px 0 14px}.list-head h2{font-size:19px}.filters{display:flex;gap:8px;flex-wrap:wrap}.filters select,.filters input{width:auto;padding:8px 10px;font-size:13px}
+.table-card{overflow:hidden}table{width:100%;border-collapse:collapse;font-size:13.5px}thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--verde-700);background:var(--verde-050);padding:11px 12px;border-bottom:1px solid var(--linea)}
+tbody td{padding:12px;border-bottom:1px solid var(--linea);vertical-align:top}.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}.tag-compleja{background:#fbe9de;color:#a8552b}.tag-simple{background:var(--verde-100);color:var(--verde-800)}
+.cell-fecha{font-family:'IBM Plex Mono',monospace;font-size:12.5px;white-space:nowrap}.hora{display:block;color:var(--tinta-suave);font-size:11.5px}.done{opacity:.55}.actions{display:flex;gap:5px;flex-wrap:wrap}.icon-btn{border:none;background:transparent;cursor:pointer;padding:5px 7px;border-radius:6px;font-size:15px}.empty{text-align:center;padding:48px 20px;color:var(--tinta-suave)}
+.rolebar{max-width:1180px;margin:0 auto 14px;padding:0 20px}.rolebox{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--linea);border-radius:10px;padding:10px 14px;box-shadow:var(--sombra)}
+.badge{font-size:12px;font-weight:700;border-radius:20px;padding:5px 10px}.badge-admin{background:#e6f3eb;color:#1b5b3f}.badge-reg{background:#eef4ff;color:#2f5fd6}
+.login-overlay{position:fixed;inset:0;background:linear-gradient(160deg,var(--verde-900),var(--verde-700));z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}.login-card{width:min(430px,100%);background:#fff;border-radius:16px;padding:28px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.login-card h2{font-size:25px}.login-card p{color:var(--tinta-suave);font-size:14px;line-height:1.5}.login-error{color:#a23f27;font-size:13px;margin-top:10px;display:none}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--verde-950);color:#fff;padding:12px 20px;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:300}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.err{background:#8a3a24}
+footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave);font-size:12px}
+@media(max-width:700px){.row2{grid-template-columns:1fr}thead{display:none}table,tbody,tr,td{display:block;width:100%}tbody tr{padding:12px 0;border-bottom:1px solid var(--linea)}tbody td{border:0;padding:4px 12px;display:flex;justify-content:space-between;gap:10px}tbody td:before{content:attr(data-label);font-weight:600;color:var(--verde-700);font-size:11px}.actions{justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div id="login" class="login-overlay">
+  <div class="login-card">
+    <div class="eyebrow" style="color:var(--verde-600)">Centro Odontológico</div>
+    <h2>Registro de Cirugías</h2>
+    <p>Ingresa la clave asignada. La página detectará automáticamente si tienes acceso de Administrador o de Registro.</p>
+    <label>Clave de acceso</label>
+    <input id="access-key" type="password" autocomplete="current-password" placeholder="Ingresa tu clave">
+    <button class="btn btn-primary" id="login-btn">Ingresar</button>
+    <div class="login-error" id="login-error">Clave incorrecta o no se pudo conectar.</div>
+  </div>
+</div>
+
+<div class="top">
+ <div class="top-inner">
+  <div class="eyebrow">Cirugía Bucal · Pregrado 4º–5º año</div>
+  <h1>Registro y Programación de Cirugías</h1>
+  <p>Agenda las próximas cirugías del centro odontológico universitario y mantén un historial continuo por alumno, cirujano supervisor y sillón de sala.</p>
+ </div>
+</div>
+
+<div class="rolebar">
+ <div class="rolebox">
+  <div><strong id="role-title">Acceso</strong><div id="role-help" style="font-size:12px;color:var(--tinta-suave);margin-top:2px"></div></div>
+  <div style="display:flex;gap:8px;align-items:center"><span id="role-badge" class="badge"></span><button class="btn btn-ghost" id="logout-btn">Salir</button></div>
+ </div>
+</div>
+
+<div class="wrap">
+ <div class="grid">
+  <div class="card form-card">
+   <h2 id="form-title">Nueva cirugía</h2>
+   <div class="sub" id="form-sub">Completa los datos para reservar sala y horario.</div>
+   <form id="form">
+    <select id="f-tipo" required><option value="" disabled selected>Descripción del proceso…</option><option>Cirugía Compleja</option><option>Cirugía Simple</option></select>
+    <div class="row2"><div><label>Fecha <span class="req">*</span></label><input type="date" id="f-fecha" required></div><div><label>Hora <span class="req">*</span></label><input type="time" id="f-hora" required></div></div>
+    <label>Cirujano supervisor <span class="req">*</span></label>
+    <select id="f-doctor" required><option value="" disabled selected>Seleccionar…</option><option>Dr. Baldarrago</option><option>Dra. Portilla</option><option>Dr. Arce</option><option>Dr. Calle</option><option>Dr. Alpaca</option></select>
+    <label>Sala de cirugía — sillón <span class="req">*</span></label>
+    <div class="chair-picker" id="chair-picker">
+      <div class="chair-btn c-naranja" data-chair="1">Sillón 1<small>disponible</small></div>
+      <div class="chair-btn c-naranja" data-chair="2">Sillón 2<small>disponible</small></div>
+      <div class="chair-btn c-azul" data-chair="3">Sillón 3<small>disponible</small></div>
+      <div class="chair-btn c-azul" data-chair="4">Sillón 4<small>disponible</small></div>
+    </div>
+    <div class="alert warn" id="alert-warn"></div><div class="alert ok" id="alert-ok"></div>
+    <label>Alumno(a) a cargo <span class="req">*</span></label><input id="f-alumno" required placeholder="Nombre y apellido">
+    <label>Asistente</label><input id="f-asistente" placeholder="Nombre del compañero(a) asistente">
+    <label>Paciente <span class="req">*</span></label><input id="f-paciente" required placeholder="Nombre del paciente">
+    <label>Diagnóstico (Dx) — pieza <span class="req">*</span></label><input id="f-dx" required placeholder="Ej. Pieza 3.8, retenida">
+    <button class="btn btn-primary" id="save-btn">Programar cirugía</button>
+    <button type="button" class="btn btn-ghost" id="cancel-edit" style="width:100%;margin-top:8px;display:none">Cancelar edición</button>
+   </form>
+  </div>
+
+  <div>
+   <div class="card sched-card">
+    <h3>Horario de Especialidad de Periodoncia</h3>
+    <div class="sub">En estos bloques, los sillones 1 y 2 quedan reservados para Periodoncia. Los sillones 3 y 4 siguen disponibles para pregrado.</div>
+    <div class="sched-grid" id="sched-grid"></div>
+   </div>
+   <div class="list-head"><h2>Cirugías programadas</h2>
+    <div class="filters">
+      <input type="date" id="filter-fecha"><select id="filter-doctor"><option value="">Todos los cirujanos</option><option>Dr. Baldarrago</option><option>Dra. Portilla</option><option>Dr. Arce</option><option>Dr. Calle</option><option>Dr. Alpaca</option></select>
+      <select id="filter-estado"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="realizadas">Realizadas</option></select><button class="btn btn-ghost" id="clear">Limpiar</button>
+    </div>
+   </div>
+   <div class="card table-card"><table><thead><tr><th>Fecha / hora</th><th>Proceso</th><th>Sala</th><th>Cirujano</th><th>Alumno</th><th>Asistente</th><th>Paciente</th><th>Dx</th><th></th></tr></thead><tbody id="tbody"><tr><td colspan="9" class="empty">Inicia sesión para cargar los registros.</td></tr></tbody></table></div>
+  </div>
+ </div>
+</div>
+<footer>Registro compartido en la nube. El modo Registro solo permite agregar nuevas cirugías; el Administrador puede editar y eliminar.</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://smizdwogscznptgacyor.supabase.co/functions/v1/cirugias-api";
+const PERIODONCIA=[{day:1,blocks:[[510,870]]},{day:2,blocks:[[510,990]]},{day:3,blocks:[[510,750],[840,960]]}];
+const DAY_NAMES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+let KEY='',ROLE='',ALL=[],selectedChair=null,editingId=null,poll=null;
+
+function toMin(h){const [a,b]=h.split(':').map(Number);return a*60+b}
+function weekday(f){return new Date(f+'T00:00:00').getDay()}
+function pBlock(f,h){if(!f||!h)return null;const e=PERIODONCIA.find(x=>x.day===weekday(f));if(!e)return null;const m=toMin(h);const b=e.blocks.find(([a,z])=>m>=a&&m<z);return b?{day:e.day,block:b}:null}
+function fmtMin(m){let h=Math.floor(m/60),mm=m%60,ap=h>=12?'pm':'am';let hh=h%12||12;return `${hh}:${String(mm).padStart(2,'0')}${ap}`}
+function renderSched(){const g=document.getElementById('sched-grid');let s='';for(const d of [1,2,3]){const e=PERIODONCIA.find(x=>x.day===d);s+=`<div class="sched-day">${DAY_NAMES[d].slice(0,3)}</div>`;let b='';for(const [a,z] of e.blocks){const l=((a-480)/540)*100,w=((z-a)/540)*100;b+=`<div class="sched-block" style="left:${l}%;width:${w}%" title="${fmtMin(a)}–${fmtMin(z)}"></div>`}s+=`<div class="sched-bar-wrap"><div class="sched-track">${b}</div></div>`}g.innerHTML=s}
+renderSched();
+
+async function request(method='GET',body=null,id=null){
+ const u=id?`${API}?id=${encodeURIComponent(id)}`:API;
+ const r=await fetch(u,{method,headers:{'Content-Type':'application/json','x-access-key':KEY},body:body?JSON.stringify(body):undefined});
+ let data={};try{data=await r.json()}catch{}
+ if(!r.ok)throw new Error(data.error||'Error de conexión');
+ return data
+}
+function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('err',err);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+async function login(){
+ KEY=document.getElementById('access-key').value.trim();if(!KEY)return;
+ const btn=document.getElementById('login-btn');btn.disabled=true;
+ try{const d=await request();ROLE=d.role;ALL=d.items||[];sessionStorage.setItem('cirugia_key',KEY);document.getElementById('login').style.display='none';applyRole();renderTable();refreshChair();startPoll()}
+ catch(e){document.getElementById('login-error').style.display='block'}
+ finally{btn.disabled=false}
+}
+function applyRole(){
+ const admin=ROLE==='admin';
+ document.getElementById('role-title').textContent=admin?'Administrador':'Registro';
+ document.getElementById('role-help').textContent=admin?'Puede agregar, editar, marcar como realizada y eliminar registros.':'Puede ver la agenda y agregar nuevas cirugías. No puede modificar ni eliminar registros existentes.';
+ const b=document.getElementById('role-badge');b.textContent=admin?'CONTROL TOTAL':'SOLO AGREGAR';b.className='badge '+(admin?'badge-admin':'badge-reg')
+}
+function logout(){KEY='';ROLE='';ALL=[];editingId=null;sessionStorage.removeItem('cirugia_key');clearInterval(poll);document.getElementById('access-key').value='';document.getElementById('login').style.display='flex'}
+document.getElementById('login-btn').onclick=login;document.getElementById('access-key').addEventListener('keydown',e=>{if(e.key==='Enter')login()});document.getElementById('logout-btn').onclick=logout;
+
+const chairs=[...document.querySelectorAll('.chair-btn')];
+function resetChairs(){selectedChair=null;chairs.forEach(b=>{b.classList.remove('selected','blocked','taken');b.querySelector('small').textContent='disponible'})}
+function refreshChair(){
+ const f=document.getElementById('f-fecha').value,h=document.getElementById('f-hora').value;const w=document.getElementById('alert-warn'),ok=document.getElementById('alert-ok');w.classList.remove('show');ok.classList.remove('show');resetChairs();if(!f||!h)return;
+ const p=pBlock(f,h);if(p){chairs.filter(b=>['1','2'].includes(b.dataset.chair)).forEach(b=>{b.classList.add('blocked');b.querySelector('small').textContent='Periodoncia'});w.textContent=`Sillones 1 y 2 reservados para Periodoncia ese ${DAY_NAMES[p.day]} de ${fmtMin(p.block[0])} a ${fmtMin(p.block[1])}.`;w.classList.add('show')}
+ const taken=ALL.filter(x=>x.id!==editingId&&x.fecha===f&&String(x.hora).slice(0,5)===h).map(x=>String(x.sillon));
+ chairs.forEach(b=>{if(taken.includes(b.dataset.chair)){b.classList.remove('blocked');b.classList.add('taken');b.querySelector('small').textContent='ocupado'}});
+ const free=chairs.filter(b=>!b.classList.contains('blocked')&&!b.classList.contains('taken')).length;if(free&&!p){ok.textContent=`${free} de 4 sillones disponibles.`;ok.classList.add('show')}
+}
+chairs.forEach(b=>b.onclick=()=>{if(b.classList.contains('blocked')||b.classList.contains('taken'))return;chairs.forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedChair=b.dataset.chair});
+['f-fecha','f-hora'].forEach(id=>document.getElementById(id).addEventListener('change',refreshChair));
+
+function formData(){
+ return {tipo:document.getElementById('f-tipo').value,fecha:document.getElementById('f-fecha').value,hora:document.getElementById('f-hora').value,doctor:document.getElementById('f-doctor').value,sillon:selectedChair,alumno:document.getElementById('f-alumno').value.trim(),asistente:document.getElementById('f-asistente').value.trim(),paciente:document.getElementById('f-paciente').value.trim(),dx:document.getElementById('f-dx').value.trim()}
+}
+function clearForm(){document.getElementById('form').reset();resetChairs();editingId=null;document.getElementById('form-title').textContent='Nueva cirugía';document.getElementById('form-sub').textContent='Completa los datos para reservar sala y horario.';document.getElementById('save-btn').textContent='Programar cirugía';document.getElementById('cancel-edit').style.display='none'}
+document.getElementById('cancel-edit').onclick=clearForm;
+document.getElementById('form').onsubmit=async e=>{
+ e.preventDefault();if(!selectedChair){showToast('Selecciona un sillón disponible.',true);return}
+ const p=formData();const b=document.getElementById('save-btn');b.disabled=true;
+ try{
+  if(editingId){if(ROLE!=='admin')throw new Error('No autorizado');await request('PATCH',{id:editingId,...p});showToast('Registro actualizado.')}
+  else{await request('POST',p);showToast('Cirugía programada correctamente.')}
+  clearForm();await load();
+ }catch(err){showToast(err.message,true)}finally{b.disabled=false}
+}
+
+async function load(){const d=await request();ROLE=d.role;ALL=d.items||[];applyRole();renderTable();refreshChair()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function renderTable(){
+ let a=[...ALL],ff=document.getElementById('filter-fecha').value,fd=document.getElementById('filter-doctor').value,fe=document.getElementById('filter-estado').value;
+ if(ff)a=a.filter(x=>x.fecha===ff);if(fd)a=a.filter(x=>x.doctor===fd);const td=new Date().toISOString().slice(0,10);if(fe==='proximas')a=a.filter(x=>!x.realizada&&x.fecha>=td);if(fe==='realizadas')a=a.filter(x=>x.realizada);
+ a.sort((x,y)=>(x.fecha+String(x.hora)).localeCompare(y.fecha+String(y.hora)));const tb=document.getElementById('tbody');
+ if(!a.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><strong>Sin cirugías registradas</strong><br>Ajusta los filtros o registra una nueva cirugía.</div></td></tr>';return}
+ const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';let act='';if(admin)act=`<div class="actions"><button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;return `<tr class="${x.realizada?'done':''}"><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${String(x.hora).slice(0,5)}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td>${act}</td></tr>`}).join('')
+}
+window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
+window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);try{await request('PATCH',{id,realizada:!x.realizada});showToast('Estado actualizado.');await load()}catch(e){showToast(e.message,true)}}
+window.delItem=async id=>{if(ROLE!=='admin'||!confirm('¿Eliminar esta cirugía del registro?'))return;try{await request('DELETE',null,id);showToast('Registro eliminado.');await load()}catch(e){showToast(e.message,true)}}
+['filter-fecha','filter-doctor','filter-estado'].forEach(id=>document.getElementById(id).onchange=renderTable);document.getElementById('clear').onclick=()=>{document.getElementById('filter-fecha').value='';document.getElementById('filter-doctor').value='';document.getElementById('filter-estado').value='todas';renderTable()}
+function startPoll(){clearInterval(poll);poll=setInterval(()=>load().catch(()=>{}),10000)}
+(async()=>{const saved=sessionStorage.getItem('cirugia_key');if(saved){KEY=saved;try{const d=await request();ROLE=d.role;ALL=d.items||[];document.getElementById('login').style.display='none';applyRole();renderTable();startPoll()}catch{sessionStorage.removeItem('cirugia_key')}}})();
+</script>
+</body>
+</html>
