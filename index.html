@@ -73,6 +73,25 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
   }
 }
 
+
+.teacher-observation-wrap{display:none;margin-top:12px}
+.teacher-observation-wrap textarea{
+  width:100%;min-height:105px;resize:vertical;
+  border:1px solid var(--linea);border-radius:9px;
+  padding:11px 12px;font:inherit;background:#fff;color:var(--tinta);
+}
+.teacher-observation-wrap textarea:focus{
+  outline:none;border-color:var(--verde-500);
+  box-shadow:0 0 0 3px rgba(64,145,108,.12);
+}
+.teacher-note{
+  margin-top:6px;padding:6px 8px;border-radius:7px;
+  background:var(--verde-050);border:1px solid var(--linea);
+  font-size:11px;line-height:1.35;color:var(--tinta-suave);
+  max-width:240px;white-space:normal;
+}
+.teacher-note strong{color:var(--verde-800)}
+
 </style>
 </head>
 <body>
@@ -115,7 +134,8 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
    <div class="sub" id="form-sub">Completa los datos para reservar sala y horario.</div>
    <form id="form">
     <select id="f-tipo" required><option value="" disabled selected>Descripción del proceso…</option><option>Cirugía Compleja</option><option>Cirugía Simple</option></select>
-    <div class="row2"><div><label>Fecha <span class="req">*</span></label><input type="date" id="f-fecha" required></div><div><label>Hora <span class="req">*</span></label><input type="time" id="f-hora" required></div></div>
+    <div class="row2"><div><label>Fecha <span class="req">*</span></label><input type="date" id="f-fecha" required></div><div><label>Hora (24 h) <span class="req">*</span></label><input type="time" id="f-hora" required>
+<small style="display:block;margin-top:5px;color:var(--tinta-suave);font-size:11px">Ejemplo: 13:30 = 1:30 p. m. · 01:30 = 1:30 a. m.</small></div></div>
     <label>Cirujano supervisor <span class="req">*</span></label>
     <select id="f-doctor" required><option value="" disabled selected>Seleccionar…</option><option>Dr. Baldarrago</option><option>Dra. Portilla</option><option>Dr. Arce</option><option>Dr. Calle</option><option>Dr. Alpaca</option></select>
     <label>Semestre <span class="req">*</span></label>
@@ -132,6 +152,11 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
     <label>Asistente</label><input id="f-asistente" placeholder="Nombre del compañero(a) asistente">
     <label>Paciente <span class="req">*</span></label><input id="f-paciente" required placeholder="Nombre del paciente">
     <label>Diagnóstico (Dx) — pieza <span class="req">*</span></label><input id="f-dx" required placeholder="Ej. Pieza 3.8, retenida">
+    <div class="teacher-observation-wrap" id="teacher-observation-wrap">
+      <label>Observación del docente</label>
+      <textarea id="f-observacion-docente" maxlength="1000" placeholder="Escriba aquí alguna observación encontrada por el docente durante la cirugía..."></textarea>
+      <small style="display:block;margin-top:5px;color:var(--tinta-suave);font-size:11px">Visible únicamente en modo Administrador.</small>
+    </div>
     <button class="btn btn-primary" id="save-btn">Programar cirugía</button>
     <button type="button" class="btn btn-ghost" id="cancel-edit" style="width:100%;margin-top:8px;display:none">Cancelar edición</button>
    </form>
@@ -153,7 +178,7 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
   </div>
  </div>
 </div>
-<footer>Registro compartido en la nube. Las solicitudes se muestran por orden de registro. Una solicitud Pendiente no reserva el sillón; solo una Autorizada bloquea su intervalo. Al autorizar una, las solicitudes Pendientes que se crucen en ese mismo sillón se anulan automáticamente y no pueden reactivarse. El Administrador puede autorizar, editar, marcar como realizada y eliminar.</footer>
+<footer>Registro compartido en la nube. Las solicitudes se muestran por orden de registro. Una solicitud Pendiente no reserva el sillón; solo una Autorizada bloquea su intervalo. Al autorizar una, las solicitudes Pendientes que se crucen en ese mismo sillón se anulan automáticamente y no pueden reactivarse. El Administrador puede autorizar, editar, ampliar el tiempo, escribir observaciones, marcar como realizada y eliminar.</footer>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -172,6 +197,16 @@ function weekday(f){return new Date(f+'T00:00:00').getDay()}
 function pBlock(f,h,tipo,extra=0){if(!f||!h||!tipo)return null;const e=PERIODONCIA.find(x=>x.day===weekday(f));if(!e)return null;const start=toMin(h),end=start+durationFor(tipo)+Math.max(0,Number(extra)||0);const b=e.blocks.find(([a,z])=>overlaps(start,end,a,z));return b?{day:e.day,block:b}:null}
 function fmtMin(m){let h=Math.floor(m/60)%24,mm=m%60,ap=h>=12?'p. m.':'a. m.';let hh=h%12||12;return `${hh}:${String(mm).padStart(2,'0')} ${ap}`}
 function fmt24(m){m=((m%1440)+1440)%1440;return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
+function nextAuthorizedFor(x){
+ const start=toMin(x.hora);
+ return ALL
+   .filter(v=>v.id!==x.id &&
+     v.fecha===x.fecha &&
+     String(v.sillon)===String(x.sillon) &&
+     (v.autorizacion||'Pendiente')==='Autorizada' &&
+     toMin(v.hora)>start)
+   .sort((a,b)=>toMin(a.hora)-toMin(b.hora))[0]||null;
+}
 function renderSched(){const g=document.getElementById('sched-grid');g.innerHTML=PERIODONCIA.map(e=>`<div class="sched-row"><span class="sched-day">${DAY_NAMES[e.day]}</span><span class="sched-hours">${e.blocks.map(([a,z])=>`${fmtMin(a)} – ${fmtMin(z)}`).join(' · ')}</span></div>`).join('')}
 renderSched();
 
@@ -219,13 +254,14 @@ function applyRole(){
  const admin=ROLE==='admin';
  document.getElementById('role-title').textContent=admin?'Administrador':'Registro de cirugías';
  document.getElementById('role-help').textContent=admin
-   ?'Puede autorizar, editar, ampliar el tiempo, marcar como realizada, exportar y eliminar registros.'
+   ?'Puede autorizar, editar, ampliar el tiempo, escribir observaciones, marcar como realizada, exportar y eliminar registros.'
    :'Acceso abierto para consultar la agenda y registrar nuevas solicitudes. Las nuevas quedan Pendientes.';
  const b=document.getElementById('role-badge');
  b.textContent=admin?'CONTROL TOTAL':'REGISTRO';
  b.className='badge '+(admin?'badge-admin':'badge-reg');
  document.getElementById('logout-btn').textContent=admin?'Salir de Admin':'Administrador';
  document.getElementById('export-csv').style.display=admin?'inline-block':'none';
+ document.getElementById('teacher-observation-wrap').style.display=admin?'block':'none';
 }
 async function exitAdmin(){
  KEY='';
@@ -276,11 +312,21 @@ function refreshChair(){
 }
 chairs.forEach(b=>b.onclick=()=>{if(b.classList.contains('blocked')||b.classList.contains('taken'))return;chairs.forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedChair=b.dataset.chair});
 ['f-tipo','f-fecha','f-hora'].forEach(id=>document.getElementById(id).addEventListener('change',refreshChair));
+document.getElementById('f-hora').addEventListener('change',()=>{
+ const h=document.getElementById('f-hora').value;
+ if(!h)return;
+ const mins=toMin(h);
+ if(mins>=60 && mins<420){
+   showToast(`Atención: ${h} corresponde a ${fmtMin(mins)}. Si querías horario de la tarde, usa formato 24 h; por ejemplo 13:30 = 1:30 p. m.`,true);
+ }
+});
 
 function formData(){
- return {tipo:document.getElementById('f-tipo').value,fecha:document.getElementById('f-fecha').value,hora:document.getElementById('f-hora').value,doctor:document.getElementById('f-doctor').value,sillon:selectedChair,semestre:document.getElementById('f-semestre').value,alumno:document.getElementById('f-alumno').value.trim(),asistente:document.getElementById('f-asistente').value.trim(),paciente:document.getElementById('f-paciente').value.trim(),dx:document.getElementById('f-dx').value.trim()}
+ const data={tipo:document.getElementById('f-tipo').value,fecha:document.getElementById('f-fecha').value,hora:document.getElementById('f-hora').value,doctor:document.getElementById('f-doctor').value,sillon:selectedChair,semestre:document.getElementById('f-semestre').value,alumno:document.getElementById('f-alumno').value.trim(),asistente:document.getElementById('f-asistente').value.trim(),paciente:document.getElementById('f-paciente').value.trim(),dx:document.getElementById('f-dx').value.trim()};
+ if(ROLE==='admin')data.observacion_docente=document.getElementById('f-observacion-docente').value.trim();
+ return data
 }
-function clearForm(){document.getElementById('form').reset();resetChairs();editingId=null;document.getElementById('form-title').textContent='Nueva cirugía';document.getElementById('form-sub').textContent='Completa los datos para reservar sala y horario.';document.getElementById('save-btn').textContent='Programar cirugía';document.getElementById('cancel-edit').style.display='none'}
+function clearForm(){document.getElementById('form').reset();document.getElementById('f-observacion-docente').value='';resetChairs();editingId=null;document.getElementById('form-title').textContent='Nueva cirugía';document.getElementById('form-sub').textContent='Completa los datos para reservar sala y horario.';document.getElementById('save-btn').textContent='Programar cirugía';document.getElementById('cancel-edit').style.display='none'}
 document.getElementById('cancel-edit').onclick=clearForm;
 document.getElementById('form').onsubmit=async e=>{
  e.preventDefault();if(!selectedChair){showToast('Selecciona un sillón disponible.',true);return}
@@ -308,9 +354,9 @@ function renderTable(){
  if(ff)a=a.filter(x=>x.fecha===ff);if(fd)a=a.filter(x=>x.doctor===fd);if(fs)a=a.filter(x=>x.semestre===fs);if(fa)a=a.filter(x=>(x.autorizacion||'Pendiente')===fa);const td=new Date().toISOString().slice(0,10);if(fe==='proximas')a=a.filter(x=>!x.realizada&&x.fecha>=td);if(fe==='realizadas')a=a.filter(x=>x.realizada);
  const orderMap=new Map([...ALL].sort((x,y)=>(Number(x.creado)||0)-(Number(y.creado)||0)).map((x,i)=>[x.id,i+1]));a.sort((x,y)=>(Number(x.creado)||0)-(Number(y.creado)||0));const tb=document.getElementById('tbody');
  if(!a.length){tb.innerHTML='<tr><td colspan="12"><div class="empty"><strong>Sin cirugías registradas</strong><br>Ajusta los filtros o registra una nueva cirugía.</div></td></tr>';return}
- const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';const ini=toMin(x.hora),extra=extensionFor(x),fin=ini+durationTotal(x);const aut=x.autorizacion||'Pendiente';const autCls=aut==='Autorizada'?'tag-autorizada':aut==='Anulada'?'tag-anulada':'tag-pendiente';let act='';if(admin){const authControl=aut==='Anulada'?`<span class="tag tag-anulada" title="Esta solicitud ya no puede autorizarse">No autorizable</span>`:`<button class="auth-btn" onclick="toggleAuth('${x.id}')" title="Cambiar autorización">${aut==='Autorizada'?'Volver a pendiente':'Autorizar'}</button>`;const timeControl=aut==='Autorizada'?`<button class="auth-btn" onclick="extendTime('${x.id}')" title="Aumentar el tiempo reservado en este sillón">+ Tiempo</button>`:'';act=`<div class="actions">${authControl}${timeControl}<button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;}return `<tr class="${x.realizada?'done':''}"><td data-label="Orden"><strong>#${orderMap.get(x.id)||'—'}</strong></td><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${fmt24(ini)}–${fmt24(fin)}${extra?` · +${extra} min`:''}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Semestre">${esc(x.semestre)||'—'}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td data-label="Autorización"><span class="tag ${autCls}">${aut}</span></td><td>${act}</td></tr>`}).join('')
+ const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';const ini=toMin(x.hora),extra=extensionFor(x),fin=ini+durationTotal(x);const aut=x.autorizacion||'Pendiente';const autCls=aut==='Autorizada'?'tag-autorizada':aut==='Anulada'?'tag-anulada':'tag-pendiente';let act='';if(admin){const authControl=aut==='Anulada'?`<span class="tag tag-anulada" title="Esta solicitud ya no puede autorizarse">No autorizable</span>`:`<button class="auth-btn" onclick="toggleAuth('${x.id}')" title="Cambiar autorización">${aut==='Autorizada'?'Volver a pendiente':'Autorizar'}</button>`;const timeControl=aut==='Autorizada'?`<button class="auth-btn" onclick="extendTime('${x.id}')" title="Aumentar el tiempo reservado en este sillón">+ Tiempo</button>`:'';act=`<div class="actions">${authControl}${timeControl}<button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;}return `<tr class="${x.realizada?'done':''}"><td data-label="Orden"><strong>#${orderMap.get(x.id)||'—'}</strong></td><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${fmt24(ini)}–${fmt24(fin)}${extra?` · +${extra} min`:''}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Semestre">${esc(x.semestre)||'—'}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}${admin?`<div class="teacher-note"><strong>Observación docente:</strong><br>${x.observacion_docente?esc(x.observacion_docente):'Sin observación registrada'}</div>`:''}</td><td data-label="Autorización"><span class="tag ${autCls}">${aut}</span></td><td>${act}</td></tr>`}).join('')
 }
-window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','semestre','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
+window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','semestre','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-observacion-docente').value=x.observacion_docente??'';document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
 window.toggleAuth=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;const current=x.autorizacion||'Pendiente';if(current==='Anulada'){showToast('Esta solicitud fue anulada y ya no puede autorizarse.',true);return}const next=current==='Autorizada'?'Pendiente':'Autorizada';try{const result=await request('PATCH',{id,autorizacion:next});if(!applyServerItems(result))await load();showToast(next==='Autorizada'?'Cirugía autorizada. Las solicitudes Pendientes que se cruzan en ese sillón fueron anuladas automáticamente.':'Cirugía devuelta a Pendiente.')}catch(e){showToast(e.message,true)}}
 
 window.extendTime=async id=>{
@@ -320,28 +366,57 @@ window.extendTime=async id=>{
  if((x.autorizacion||'Pendiente')!=='Autorizada'){
    showToast('Solo se puede ampliar una cirugía autorizada.',true);return;
  }
+
  const actual=extensionFor(x);
- const raw=prompt(`Minutos adicionales que deseas agregar.\n\nExtensión actual: ${actual} min\nEjemplos: 15, 30, 45, 60`, '30');
+ const base=durationFor(x.tipo);
+ const inicio=toMin(x.hora);
+ const siguiente=nextAuthorizedFor(x);
+
+ let maxTotal=480;
+ let limiteTexto='No hay otra cirugía Autorizada posterior en este sillón.';
+ if(siguiente){
+   const sigInicio=toMin(siguiente.hora);
+   maxTotal=Math.min(480,sigInicio-inicio-base);
+   const disponible=maxTotal-actual;
+   limiteTexto=`Siguiente Autorizada: ${fmt24(sigInicio)} (${fmtMin(sigInicio)}). Puedes agregar como máximo ${Math.max(0,disponible)} min más.`;
+   if(disponible<=0){
+     showToast(`No se puede ampliar más. La siguiente cirugía Autorizada empieza a las ${fmt24(sigInicio)} (${fmtMin(sigInicio)}).`,true);
+     return;
+   }
+ }
+
+ const raw=prompt(
+   `Minutos adicionales que deseas agregar.\n\nExtensión actual: ${actual} min\n${limiteTexto}\n\nEjemplos: 15, 30, 45, 60`,
+   '30'
+ );
  if(raw===null)return;
+
  const add=Number(String(raw).trim());
  if(!Number.isInteger(add)||add<=0||add>240){
    showToast('Ingresa entre 1 y 240 minutos adicionales.',true);return;
  }
+
  const total=actual+add;
  if(total>480){
    showToast('La extensión total no puede superar 480 minutos.',true);return;
  }
+
+ if(siguiente && total>maxTotal){
+   const sigInicio=toMin(siguiente.hora);
+   const permitido=Math.max(0,maxTotal-actual);
+   showToast(`No se puede agregar ${add} min. Solo puedes agregar hasta ${permitido} min antes de la siguiente cirugía Autorizada de las ${fmt24(sigInicio)} (${fmtMin(sigInicio)}).`,true);
+   return;
+ }
+
  try{
    const result=await request('PATCH',{id,extension_minutos:total});
    if(!applyServerItems(result))await load();
-   const fin=toMin(x.hora)+durationFor(x.tipo)+total;
-   const anuladas=(result?.items||[]).filter(v=>v.autorizacion==='Anulada').length;
-   showToast(`Tiempo ampliado +${add} min. Nuevo término: ${fmt24(fin)}.${anuladas?' Conflictos actualizados.':''}`);
+   const fin=inicio+base+total;
+   showToast(`Tiempo ampliado +${add} min. Nuevo término: ${fmt24(fin)} (${fmtMin(fin)}).`);
  }catch(e){
    showToast(e.message,true);
  }
 }
-
 window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);try{const result=await request('PATCH',{id,realizada:!x.realizada});if(!applyServerItems(result))await load();showToast('Estado actualizado.')}catch(e){showToast(e.message,true)}}
 window.delItem=async id=>{if(ROLE!=='admin'||!confirm('¿Eliminar esta cirugía del registro?'))return;try{await request('DELETE',null,id);showToast('Registro eliminado.');await load()}catch(e){showToast(e.message,true)}}
 
@@ -354,7 +429,7 @@ function csvSafe(value){
 function exportCSV(){
  if(ROLE!=='admin'){showToast('Solo el Administrador puede exportar.',true);return}
  const rows=[...ALL].sort((a,b)=>(Number(a.creado)||0)-(Number(b.creado)||0));
- const headers=['Orden','Estado','Tipo de cirugía','Fecha','Hora inicio','Hora fin','Extensión (min)','Sillón','Semestre','Cirujano','Alumno','Asistente','Paciente','Diagnóstico','Realizada'];
+ const headers=['Orden','Estado','Tipo de cirugía','Fecha','Hora inicio','Hora fin','Extensión (min)','Sillón','Semestre','Cirujano','Alumno','Asistente','Paciente','Diagnóstico','Observación docente','Realizada'];
  const lines=[headers.map(csvSafe).join(';')];
  rows.forEach((x,i)=>{
    const ini=toMin(x.hora);
@@ -375,6 +450,7 @@ function exportCSV(){
      x.asistente||'',
      x.paciente,
      x.dx,
+     x.observacion_docente||'',
      x.realizada?'Sí':'No'
    ];
    lines.push(row.map(csvSafe).join(';'));
