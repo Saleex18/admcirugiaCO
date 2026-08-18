@@ -70,6 +70,8 @@ body{min-height:100vh;overflow-x:hidden}
 }
 .state.programada{background:var(--amarillo);color:#483a00}
 .state.realizada{background:#b9f1cf;color:#075128}
+.state.encurso{background:#b9e2ff;color:#083b5c}
+.alumno,.paciente,.docente{text-transform:uppercase}
 .extra{font-size:.58em;color:#fff2b1;margin-top:4px}
 .empty{
   margin:40px auto;padding:44px 25px;max-width:760px;text-align:center;
@@ -140,6 +142,7 @@ body{min-height:100vh;overflow-x:hidden}
 const API='https://smizdwogscznptgacyor.supabase.co/functions/v1/cirugias-tablero';
 const DUR={'Cirugía Compleja':90,'Cirugía Simple':30};
 let lastSnapshot='';
+let currentItems=[];
 
 function esc(v){
  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -153,6 +156,12 @@ function hhmm(m){
  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
 }
 function duration(x){return (DUR[x.tipo]||0)+(Number(x.extension_minutos)||0)}
+function surgeryState(x){
+ if(x.realizada)return {text:'REALIZADA',cls:'realizada'};
+ const start=new Date(`${x.fecha}T${String(x.hora||'00:00').slice(0,5)}:00`);
+ if(Date.now()>=start.getTime())return {text:'EN CURSO',cls:'encurso'};
+ return {text:'PROGRAMADA',cls:'programada'};
+}
 function fmtDate(s){
  if(!s)return '';
  const [y,m,d]=s.split('-').map(Number);
@@ -162,8 +171,10 @@ function updateClock(){
  const now=new Date();
  document.getElementById('clock-time').textContent=now.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
  document.getElementById('clock-date').textContent=now.toLocaleDateString('es-PE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+ if(currentItems.length)render(currentItems);
 }
 function render(items){
+ currentItems=items;
  const root=document.getElementById('rows');
  const snapshot=JSON.stringify(items.map(x=>[x.id,x.fecha,x.hora,x.extension_minutos,x.realizada,x.autorizacion]));
  const changed=lastSnapshot && snapshot!==lastSnapshot;
@@ -179,6 +190,7 @@ function render(items){
    const start=toMin(x.hora);
    const end=start+duration(x);
    const ext=Number(x.extension_minutos)||0;
+   const st=surgeryState(x);
    return `<div class="row ${changed?'changed':''}">
      <div class="cell fecha datecol">${esc(fmtDate(x.fecha))}</div>
      <div class="cell hora timecell">${esc(hhmm(start))}
@@ -190,7 +202,7 @@ function render(items){
      <div class="cell tipo-c"><span class="type">${esc(x.tipo==='Cirugía Compleja'?'Compleja':'Simple')}</span></div>
      <div class="cell sillon chair">${esc(x.sillon)}</div>
      <div class="cell docente teacher">${esc(x.doctor)}</div>
-     <div class="cell estado"><span class="state ${x.realizada?'realizada':'programada'}">${x.realizada?'REALIZADA':'PROGRAMADA'}</span></div>
+     <div class="cell estado"><span class="state ${st.cls}">${st.text}</span></div>
    </div>`;
  }).join('');
 
