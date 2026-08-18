@@ -40,7 +40,7 @@ body{min-height:100vh;overflow-x:hidden}
 .table-wrap{padding:0 0 22px}
 .head,.row{
   display:grid;
-  grid-template-columns:100px 145px minmax(170px,1fr) minmax(170px,1fr) 145px 80px minmax(150px,.9fr) 135px;
+  grid-template-columns:100px 145px minmax(170px,1fr) minmax(170px,1fr) 145px 80px minmax(150px,.9fr) 165px;
   align-items:center;
 }
 .head{
@@ -65,7 +65,7 @@ body{min-height:100vh;overflow-x:hidden}
 .teacher{font-size:.83em}
 .datecol{font-size:.74em;color:#e7f2eb}
 .state{
-  display:inline-flex;align-items:center;justify-content:center;min-width:118px;
+  display:inline-flex;align-items:center;justify-content:center;min-width:132px;white-space:nowrap;
   padding:9px 10px;border-radius:999px;font-size:.68em;font-weight:900;letter-spacing:.6px
 }
 .state.programada{background:var(--amarillo);color:#483a00}
@@ -79,7 +79,7 @@ body{min-height:100vh;overflow-x:hidden}
 .error{color:#ffd1d1}
 .footer{padding:12px 28px 22px;color:#8fa69a;font-size:12px;text-align:right}
 @media(max-width:1050px){
- .head,.row{grid-template-columns:85px 125px minmax(145px,1fr) minmax(145px,1fr) 120px 65px minmax(125px,.8fr) 115px}
+ .head,.row{grid-template-columns:85px 125px minmax(145px,1fr) minmax(145px,1fr) 120px 65px minmax(125px,.8fr) 145px}
  .head,.row{padding-left:14px;padding-right:14px}
 }
 @media(max-width:760px){
@@ -98,7 +98,7 @@ body{min-height:100vh;overflow-x:hidden}
  }
  .row .fecha{grid-area:fecha}.row .hora{grid-area:hora}.row .alumno{grid-area:alumno}
  .row .paciente{grid-area:paciente}.row .tipo-c{grid-area:tipo}.row .sillon{grid-area:sillon}.row .docente{grid-area:docente}.row .estado{grid-area:estado}
- .teacher{font-size:.75em;color:#d5e4dc}.state{min-width:0;padding:7px 8px}
+ .teacher{font-size:.75em;color:#d5e4dc}.state{min-width:96px;padding:7px 8px;white-space:nowrap;font-size:.62em}
 }
 </style>
 </head>
