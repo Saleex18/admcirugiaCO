@@ -76,15 +76,16 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
 </style>
 </head>
 <body>
-<div id="login" class="login-overlay">
+<div id="login" class="login-overlay" style="display:none">
   <div class="login-card">
     <div class="eyebrow" style="color:var(--verde-600)">Centro Odontológico</div>
-    <h2>Registro de Cirugías</h2>
-    <p>Ingresa la clave asignada. La página detectará automáticamente si tienes acceso de Administrador o de Registro.</p>
-    <label>Clave de acceso</label>
-    <input id="access-key" type="password" autocomplete="current-password" placeholder="Ingresa tu clave">
-    <button class="btn btn-primary" id="login-btn">Ingresar</button>
-    <div class="login-error" id="login-error">Clave incorrecta o no se pudo conectar.</div>
+    <h2>Acceso de Administrador</h2>
+    <p>Ingresa la clave únicamente para autorizar, editar o eliminar registros.</p>
+    <label>Clave de Administrador</label>
+    <input id="access-key" type="password" autocomplete="current-password" placeholder="Ingresa la clave de Administrador">
+    <button class="btn btn-primary" id="login-btn">Entrar como Administrador</button>
+    <button type="button" class="btn btn-ghost" id="login-cancel" style="width:100%;margin-top:8px">Cancelar</button>
+    <div class="login-error" id="login-error">Clave de Administrador incorrecta.</div>
   </div>
 </div>
 
@@ -103,7 +104,7 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
 <div class="rolebar">
  <div class="rolebox">
   <div><strong id="role-title">Acceso</strong><div id="role-help" style="font-size:12px;color:var(--tinta-suave);margin-top:2px"></div></div>
-  <div style="display:flex;gap:8px;align-items:center"><span id="role-badge" class="badge"></span><button class="btn btn-ghost" id="logout-btn">Salir</button></div>
+  <div style="display:flex;gap:8px;align-items:center"><span id="role-badge" class="badge"></span><button class="btn btn-ghost" id="logout-btn">Administrador</button></div>
  </div>
 </div>
 
@@ -148,7 +149,7 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
       <select id="filter-semestre"><option value="">Todos los semestres</option><option>VIII Semestre</option><option>X Semestre</option></select><select id="filter-estado"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="realizadas">Realizadas</option></select><select id="filter-aut"><option value="">Autorización: todas</option><option value="Pendiente">Pendientes</option><option value="Autorizada">Autorizadas</option><option value="Anulada">Anuladas</option></select><button class="btn btn-ghost" id="clear">Limpiar</button>
     </div>
    </div>
-   <div class="card table-card"><table><thead><tr><th>Orden</th><th>Fecha / hora</th><th>Proceso</th><th>Sala</th><th>Cirujano</th><th>Semestre</th><th>Alumno</th><th>Asistente</th><th>Paciente</th><th>Dx</th><th>Autorización</th><th></th></tr></thead><tbody id="tbody"><tr><td colspan="12" class="empty">Inicia sesión para cargar los registros.</td></tr></tbody></table></div>
+   <div class="card table-card"><table><thead><tr><th>Orden</th><th>Fecha / hora</th><th>Proceso</th><th>Sala</th><th>Cirujano</th><th>Semestre</th><th>Alumno</th><th>Asistente</th><th>Paciente</th><th>Dx</th><th>Autorización</th><th></th></tr></thead><tbody id="tbody"><tr><td colspan="12" class="empty">Cargando registros…</td></tr></tbody></table></div>
   </div>
  </div>
 </div>
@@ -160,7 +161,7 @@ const API = "https://smizdwogscznptgacyor.supabase.co/functions/v1/cirugias-api"
 const PERIODONCIA=[{day:1,blocks:[[510,870]]},{day:2,blocks:[[510,990]]},{day:3,blocks:[[510,750],[840,960]]}];
 const DAY_NAMES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DURATIONS={'Cirugía Compleja':90,'Cirugía Simple':30};
-let KEY='',ROLE='',ALL=[],selectedChair=null,editingId=null,poll=null;
+let KEY='',ROLE='registrar',ALL=[],selectedChair=null,editingId=null,poll=null;
 
 function toMin(h){const [a,b]=String(h).slice(0,5).split(':').map(Number);return a*60+b}
 function durationFor(tipo){return DURATIONS[tipo]||0}
@@ -174,27 +175,75 @@ renderSched();
 
 async function request(method='GET',body=null,id=null){
  const u=id?`${API}?id=${encodeURIComponent(id)}`:API;
- const r=await fetch(u,{method,headers:{'Content-Type':'application/json','x-access-key':KEY},body:body?JSON.stringify(body):undefined});
+ const headers={'Content-Type':'application/json'};
+ if(KEY) headers['x-access-key']=KEY;
+ const r=await fetch(u,{method,headers,body:body?JSON.stringify(body):undefined});
  let data={};try{data=await r.json()}catch{}
  if(!r.ok)throw new Error(data.error||'Error de conexión');
  return data
 }
 function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('err',err);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
-async function login(){
- KEY=document.getElementById('access-key').value.trim();if(!KEY)return;
- const btn=document.getElementById('login-btn');btn.disabled=true;
- try{const d=await request();ROLE=d.role;ALL=d.items||[];sessionStorage.setItem('cirugia_key',KEY);document.getElementById('login').style.display='none';applyRole();renderTable();refreshChair();startPoll()}
- catch(e){document.getElementById('login-error').style.display='block'}
- finally{btn.disabled=false}
+async function adminLogin(){
+ const input=document.getElementById('access-key');
+ const candidate=input.value.trim();
+ if(!candidate)return;
+ const btn=document.getElementById('login-btn');
+ btn.disabled=true;
+ document.getElementById('login-error').style.display='none';
+ try{
+   KEY=candidate;
+   const d=await request();
+   if(d.role!=='admin')throw new Error('Clave incorrecta');
+   ROLE='admin';
+   ALL=d.items||[];
+   sessionStorage.setItem('cirugia_admin_key',KEY);
+   document.getElementById('login').style.display='none';
+   applyRole();renderTable();refreshChair();startPoll();
+   showToast('Modo Administrador activado.');
+ }catch(e){
+   KEY='';
+   ROLE='registrar';
+   sessionStorage.removeItem('cirugia_admin_key');
+   document.getElementById('login-error').style.display='block';
+ }finally{btn.disabled=false}
 }
 function applyRole(){
  const admin=ROLE==='admin';
- document.getElementById('role-title').textContent=admin?'Administrador':'Registro';
- document.getElementById('role-help').textContent=admin?'Puede agregar, autorizar, editar, marcar como realizada y eliminar registros. Al autorizar una cirugía, los conflictos Pendientes del mismo sillón se anulan automáticamente.':'Puede ver la agenda y agregar nuevas cirugías. Las nuevas quedan Pendientes hasta que el Administrador las autorice.';
- const b=document.getElementById('role-badge');b.textContent=admin?'CONTROL TOTAL':'SOLO AGREGAR';b.className='badge '+(admin?'badge-admin':'badge-reg')
+ document.getElementById('role-title').textContent=admin?'Administrador':'Registro de cirugías';
+ document.getElementById('role-help').textContent=admin
+   ?'Puede autorizar, editar, marcar como realizada y eliminar registros.'
+   :'Acceso abierto para consultar la agenda y registrar nuevas solicitudes. Las nuevas quedan Pendientes.';
+ const b=document.getElementById('role-badge');
+ b.textContent=admin?'CONTROL TOTAL':'REGISTRO';
+ b.className='badge '+(admin?'badge-admin':'badge-reg');
+ document.getElementById('logout-btn').textContent=admin?'Salir de Admin':'Administrador';
 }
-function logout(){KEY='';ROLE='';ALL=[];editingId=null;sessionStorage.removeItem('cirugia_key');clearInterval(poll);document.getElementById('access-key').value='';document.getElementById('login').style.display='flex'}
-document.getElementById('login-btn').onclick=login;document.getElementById('access-key').addEventListener('keydown',e=>{if(e.key==='Enter')login()});document.getElementById('logout-btn').onclick=logout;
+async function exitAdmin(){
+ KEY='';
+ ROLE='registrar';
+ editingId=null;
+ sessionStorage.removeItem('cirugia_admin_key');
+ document.getElementById('access-key').value='';
+ document.getElementById('login-error').style.display='none';
+ clearForm();
+ await load();
+ showToast('Modo Administrador cerrado.');
+}
+function openAdmin(){
+ document.getElementById('access-key').value='';
+ document.getElementById('login-error').style.display='none';
+ document.getElementById('login').style.display='flex';
+ setTimeout(()=>document.getElementById('access-key').focus(),50);
+}
+function closeAdmin(){
+ document.getElementById('login').style.display='none';
+ document.getElementById('access-key').value='';
+ document.getElementById('login-error').style.display='none';
+}
+document.getElementById('login-btn').onclick=adminLogin;
+document.getElementById('login-cancel').onclick=closeAdmin;
+document.getElementById('access-key').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin();if(e.key==='Escape')closeAdmin()});
+document.getElementById('logout-btn').onclick=()=>ROLE==='admin'?exitAdmin():openAdmin();
 
 const chairs=[...document.querySelectorAll('.chair-btn')];
 function resetChairs(){selectedChair=null;chairs.forEach(b=>{b.classList.remove('selected','blocked','taken');b.querySelector('small').textContent='disponible'})}
@@ -247,7 +296,24 @@ window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id==
 window.delItem=async id=>{if(ROLE!=='admin'||!confirm('¿Eliminar esta cirugía del registro?'))return;try{await request('DELETE',null,id);showToast('Registro eliminado.');await load()}catch(e){showToast(e.message,true)}}
 ['filter-fecha','filter-doctor','filter-semestre','filter-estado','filter-aut'].forEach(id=>document.getElementById(id).onchange=renderTable);document.getElementById('clear').onclick=()=>{document.getElementById('filter-fecha').value='';document.getElementById('filter-doctor').value='';document.getElementById('filter-semestre').value='';document.getElementById('filter-estado').value='todas';document.getElementById('filter-aut').value='';renderTable()}
 function startPoll(){clearInterval(poll);poll=setInterval(()=>load().catch(()=>{}),10000)}
-(async()=>{const saved=sessionStorage.getItem('cirugia_key');if(saved){KEY=saved;try{const d=await request();ROLE=d.role;ALL=d.items||[];document.getElementById('login').style.display='none';applyRole();renderTable();startPoll()}catch{sessionStorage.removeItem('cirugia_key')}}})();
+(async()=>{
+ const saved=sessionStorage.getItem('cirugia_admin_key');
+ if(saved){
+   KEY=saved;
+   try{
+     const d=await request();
+     if(d.role==='admin'){ROLE='admin';ALL=d.items||[];applyRole();renderTable();refreshChair();startPoll();return}
+   }catch{}
+   KEY='';ROLE='registrar';sessionStorage.removeItem('cirugia_admin_key');
+ }
+ try{
+   const d=await request();
+   ROLE='registrar';ALL=d.items||[];
+   applyRole();renderTable();refreshChair();startPoll();
+ }catch(e){
+   document.getElementById('tbody').innerHTML='<tr><td colspan="12"><div class="empty">No se pudo cargar la agenda. Actualiza la página.</div></td></tr>';
+ }
+})();
 </script>
 </body>
 </html>
