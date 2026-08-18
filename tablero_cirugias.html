@@ -102,6 +102,26 @@ body{min-height:100vh;overflow-x:hidden}
  .row .paciente{grid-area:paciente}.row .tipo-c{grid-area:tipo}.row .sillon{grid-area:sillon}.row .docente{grid-area:docente}.row .estado{grid-area:estado}
  .teacher{font-size:.75em;color:#d5e4dc}.state{min-width:96px;padding:7px 8px;white-space:nowrap;font-size:.62em}
 }
+
+.fullscreen-btn{
+  margin-top:10px;
+  border:1px solid rgba(255,255,255,.55);
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  border-radius:8px;
+  padding:8px 13px;
+  font-weight:900;
+  font-size:12px;
+  letter-spacing:.5px;
+  cursor:pointer;
+}
+.fullscreen-btn:hover{background:rgba(255,255,255,.2)}
+:fullscreen .board{min-height:100vh}
+:fullscreen body{overflow:auto}
+:fullscreen .fullscreen-btn{opacity:.82}
+@media(max-width:760px){
+  .fullscreen-btn{font-size:10px;padding:7px 9px}
+}
 </style>
 </head>
 <body>
@@ -114,6 +134,7 @@ body{min-height:100vh;overflow-x:hidden}
     <div class="clock">
       <div class="date" id="clock-date"></div>
       <div class="time" id="clock-time">--:--</div>
+      <button id="fullscreen-btn" class="fullscreen-btn" type="button">PANTALLA COMPLETA</button>
     </div>
   </header>
 
@@ -219,6 +240,28 @@ async function load(){
    document.getElementById('updated').innerHTML='<span class="error">Sin conexión · reintentando…</span>';
  }
 }
+
+const fsBtn=document.getElementById('fullscreen-btn');
+
+async function toggleFullscreen(){
+ try{
+   if(!document.fullscreenElement){
+     await document.documentElement.requestFullscreen();
+   }else{
+     await document.exitFullscreen();
+   }
+ }catch(e){
+   alert('No se pudo activar la pantalla completa. También puedes usar F11 en el navegador.');
+ }
+}
+
+function updateFullscreenButton(){
+ fsBtn.textContent=document.fullscreenElement?'SALIR DE PANTALLA COMPLETA':'PANTALLA COMPLETA';
+}
+
+fsBtn.addEventListener('click',toggleFullscreen);
+document.addEventListener('fullscreenchange',updateFullscreenButton);
+
 updateClock();
 setInterval(updateClock,1000);
 load();
