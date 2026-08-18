@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tablero de Cirugías</title>
+<style>
+:root{
+  --verde-950:#0d2b1f;
+  --verde-900:#123a29;
+  --verde-800:#1b4d36;
+  --verde-700:#245e42;
+  --verde-600:#2d6a4f;
+  --verde-500:#40916c;
+  --verde-300:#8ac7a8;
+  --verde-100:#dcf0e5;
+  --blanco:#fff;
+  --amarillo:#ffe78d;
+  --azul:#b9e2ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#08150f;color:#fff;font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;overflow-x:hidden}
+.board{min-height:100vh;background:linear-gradient(180deg,#0c2117 0,#07110c 100%)}
+.header{
+  background:linear-gradient(100deg,var(--verde-800),var(--verde-600));
+  padding:18px 28px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:28px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3)
+}
+.brand h1{font-size:clamp(27px,3vw,52px);line-height:1;margin:0;font-weight:900;letter-spacing:.5px}
+.brand p{margin:8px 0 0;color:var(--verde-100);font-size:clamp(13px,1.25vw,21px);font-weight:700}
+.clock{text-align:right;white-space:nowrap}
+.clock .date{font-size:clamp(14px,1.4vw,22px);font-weight:700;color:var(--verde-100)}
+.clock .time{font-size:clamp(30px,3.4vw,58px);font-weight:900;line-height:1.05;margin-top:4px}
+.statusbar{
+  padding:8px 28px;background:#07110c;border-bottom:1px solid rgba(255,255,255,.12);
+  display:flex;justify-content:space-between;gap:16px;font-size:13px;color:#b8c9c0
+}
+.table-wrap{padding:0 0 22px}
+.head,.row{
+  display:grid;
+  grid-template-columns:110px 155px minmax(190px,1.15fr) 160px 95px minmax(170px,1fr) 150px;
+  align-items:center;
+}
+.head{
+  background:#0b1811;color:#dbe9e1;font-size:14px;font-weight:900;
+  letter-spacing:.6px;text-transform:uppercase;padding:12px 24px;
+  border-bottom:2px solid var(--verde-500)
+}
+.row{
+  min-height:74px;padding:8px 24px;font-size:clamp(15px,1.45vw,24px);font-weight:800;
+  border-bottom:1px solid rgba(255,255,255,.09);
+  transition:background .25s ease,opacity .25s ease
+}
+.row:nth-child(odd){background:#173d2b}
+.row:nth-child(even){background:#21533a}
+.row.changed{animation:flash 1.2s ease}
+@keyframes flash{0%,100%{filter:none}40%{filter:brightness(1.65)}}
+.cell{padding-right:14px;overflow-wrap:anywhere}
+.timecell{font-size:clamp(20px,1.8vw,30px);color:#fff}
+.end{font-size:.58em;color:#cce2d5;margin-top:4px;font-weight:700}
+.type{font-size:.72em;display:inline-block;padding:7px 10px;border-radius:8px;background:#e9f6ef;color:#164a33;font-weight:900}
+.chair{text-align:center;font-size:1.15em}
+.teacher{font-size:.83em}
+.datecol{font-size:.74em;color:#e7f2eb}
+.state{
+  display:inline-flex;align-items:center;justify-content:center;min-width:118px;
+  padding:9px 10px;border-radius:999px;font-size:.68em;font-weight:900;letter-spacing:.6px
+}
+.state.programada{background:var(--amarillo);color:#483a00}
+.state.realizada{background:#b9f1cf;color:#075128}
+.extra{font-size:.58em;color:#fff2b1;margin-top:4px}
+.empty{
+  margin:40px auto;padding:44px 25px;max-width:760px;text-align:center;
+  border:1px solid rgba(255,255,255,.13);border-radius:16px;background:rgba(255,255,255,.04)
+}
+.empty b{display:block;font-size:28px;margin-bottom:8px}
+.error{color:#ffd1d1}
+.footer{padding:12px 28px 22px;color:#8fa69a;font-size:12px;text-align:right}
+@media(max-width:1050px){
+ .head,.row{grid-template-columns:90px 135px minmax(160px,1fr) 130px 70px minmax(140px,.8fr) 125px}
+ .head,.row{padding-left:14px;padding-right:14px}
+}
+@media(max-width:760px){
+ .header{align-items:flex-start;padding:16px}
+ .clock .date{display:none}
+ .statusbar{padding:8px 16px}
+ .head{display:none}
+ .row{
+   grid-template-columns:95px 1fr 80px;
+   grid-template-areas:
+     "hora alumno estado"
+     "fecha tipo sillon"
+     "docente docente docente";
+   gap:5px 12px;padding:13px 16px
+ }
+ .row .fecha{grid-area:fecha}.row .hora{grid-area:hora}.row .alumno{grid-area:alumno}
+ .row .tipo-c{grid-area:tipo}.row .sillon{grid-area:sillon}.row .docente{grid-area:docente}.row .estado{grid-area:estado}
+ .teacher{font-size:.75em;color:#d5e4dc}.state{min-width:0;padding:7px 8px}
+}
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="header">
+    <div class="brand">
+      <h1>CIRUGÍAS PROGRAMADAS</h1>
+      <p>Cirugía Bucal · Centro Odontológico Universitario</p>
+    </div>
+    <div class="clock">
+      <div class="date" id="clock-date"></div>
+      <div class="time" id="clock-time">--:--</div>
+    </div>
+  </header>
+
+  <div class="statusbar">
+    <span id="count">Cargando programación…</span>
+    <span id="updated">Actualizando…</span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="head">
+      <div>Fecha</div>
+      <div>Horario</div>
+      <div>Alumno</div>
+      <div>Cirugía</div>
+      <div>Sillón</div>
+      <div>Docente</div>
+      <div>Estado</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+  <div class="footer">Actualización automática cada 3 segundos</div>
+</div>
+
+<script>
+const API='https://smizdwogscznptgacyor.supabase.co/functions/v1/cirugias-tablero';
+const DUR={'Cirugía Compleja':90,'Cirugía Simple':30};
+let lastSnapshot='';
+
+function esc(v){
+ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toMin(h){
+ const [hh,mm]=String(h||'00:00').slice(0,5).split(':').map(Number);
+ return hh*60+mm;
+}
+function hhmm(m){
+ m=((m%1440)+1440)%1440;
+ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+}
+function duration(x){return (DUR[x.tipo]||0)+(Number(x.extension_minutos)||0)}
+function fmtDate(s){
+ if(!s)return '';
+ const [y,m,d]=s.split('-').map(Number);
+ return new Intl.DateTimeFormat('es-PE',{day:'2-digit',month:'short'}).format(new Date(y,m-1,d));
+}
+function updateClock(){
+ const now=new Date();
+ document.getElementById('clock-time').textContent=now.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+ document.getElementById('clock-date').textContent=now.toLocaleDateString('es-PE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+}
+function render(items){
+ const root=document.getElementById('rows');
+ const snapshot=JSON.stringify(items.map(x=>[x.id,x.fecha,x.hora,x.extension_minutos,x.realizada,x.autorizacion]));
+ const changed=lastSnapshot && snapshot!==lastSnapshot;
+ lastSnapshot=snapshot;
+
+ if(!items.length){
+   root.innerHTML='<div class="empty"><b>Sin cirugías autorizadas</b>No hay cirugías para mostrar en el tablero.</div>';
+   document.getElementById('count').textContent='0 cirugías autorizadas';
+   return;
+ }
+
+ root.innerHTML=items.map(x=>{
+   const start=toMin(x.hora);
+   const end=start+duration(x);
+   const ext=Number(x.extension_minutos)||0;
+   return `<div class="row ${changed?'changed':''}">
+     <div class="cell fecha datecol">${esc(fmtDate(x.fecha))}</div>
+     <div class="cell hora timecell">${esc(hhmm(start))}
+       <div class="end">hasta ${esc(hhmm(end))}</div>
+       ${ext?`<div class="extra">+${ext} min</div>`:''}
+     </div>
+     <div class="cell alumno">${esc(x.alumno)}</div>
+     <div class="cell tipo-c"><span class="type">${esc(x.tipo==='Cirugía Compleja'?'Compleja':'Simple')}</span></div>
+     <div class="cell sillon chair">${esc(x.sillon)}</div>
+     <div class="cell docente teacher">${esc(x.doctor)}</div>
+     <div class="cell estado"><span class="state ${x.realizada?'realizada':'programada'}">${x.realizada?'REALIZADA':'PROGRAMADA'}</span></div>
+   </div>`;
+ }).join('');
+
+ document.getElementById('count').textContent=`${items.length} cirugía${items.length===1?'':'s'} autorizada${items.length===1?'':'s'}`;
+}
+async function load(){
+ try{
+   const r=await fetch(API+'?_t='+Date.now(),{cache:'no-store'});
+   const data=await r.json();
+   if(!r.ok)throw new Error(data.error||'No se pudo cargar');
+   render(data.items||[]);
+   document.getElementById('updated').textContent='Actualizado '+new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+ }catch(e){
+   document.getElementById('updated').innerHTML='<span class="error">Sin conexión · reintentando…</span>';
+ }
+}
+updateClock();
+setInterval(updateClock,1000);
+load();
+setInterval(load,3000);
+</script>
+</body>
+</html>
