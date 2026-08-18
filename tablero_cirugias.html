@@ -40,7 +40,7 @@ body{min-height:100vh;overflow-x:hidden}
 .table-wrap{padding:0 0 22px}
 .head,.row{
   display:grid;
-  grid-template-columns:110px 155px minmax(190px,1.15fr) 160px 95px minmax(170px,1fr) 150px;
+  grid-template-columns:100px 145px minmax(170px,1fr) minmax(170px,1fr) 145px 80px minmax(150px,.9fr) 135px;
   align-items:center;
 }
 .head{
@@ -79,7 +79,7 @@ body{min-height:100vh;overflow-x:hidden}
 .error{color:#ffd1d1}
 .footer{padding:12px 28px 22px;color:#8fa69a;font-size:12px;text-align:right}
 @media(max-width:1050px){
- .head,.row{grid-template-columns:90px 135px minmax(160px,1fr) 130px 70px minmax(140px,.8fr) 125px}
+ .head,.row{grid-template-columns:85px 125px minmax(145px,1fr) minmax(145px,1fr) 120px 65px minmax(125px,.8fr) 115px}
  .head,.row{padding-left:14px;padding-right:14px}
 }
 @media(max-width:760px){
@@ -91,12 +91,13 @@ body{min-height:100vh;overflow-x:hidden}
    grid-template-columns:95px 1fr 80px;
    grid-template-areas:
      "hora alumno estado"
-     "fecha tipo sillon"
+     "fecha paciente sillon"
+     "tipo tipo tipo"
      "docente docente docente";
    gap:5px 12px;padding:13px 16px
  }
  .row .fecha{grid-area:fecha}.row .hora{grid-area:hora}.row .alumno{grid-area:alumno}
- .row .tipo-c{grid-area:tipo}.row .sillon{grid-area:sillon}.row .docente{grid-area:docente}.row .estado{grid-area:estado}
+ .row .paciente{grid-area:paciente}.row .tipo-c{grid-area:tipo}.row .sillon{grid-area:sillon}.row .docente{grid-area:docente}.row .estado{grid-area:estado}
  .teacher{font-size:.75em;color:#d5e4dc}.state{min-width:0;padding:7px 8px}
 }
 </style>
@@ -124,6 +125,7 @@ body{min-height:100vh;overflow-x:hidden}
       <div>Fecha</div>
       <div>Horario</div>
       <div>Alumno</div>
+      <div>Paciente</div>
       <div>Cirugía</div>
       <div>Sillón</div>
       <div>Docente</div>
@@ -184,6 +186,7 @@ function render(items){
        ${ext?`<div class="extra">+${ext} min</div>`:''}
      </div>
      <div class="cell alumno">${esc(x.alumno)}</div>
+     <div class="cell paciente">${esc(x.paciente||'—')}</div>
      <div class="cell tipo-c"><span class="type">${esc(x.tipo==='Cirugía Compleja'?'Compleja':'Simple')}</span></div>
      <div class="cell sillon chair">${esc(x.sillon)}</div>
      <div class="cell docente teacher">${esc(x.doctor)}</div>
