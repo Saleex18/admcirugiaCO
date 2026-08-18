@@ -146,7 +146,7 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--tinta-suave)
    <div class="list-head"><h2>Cirugías programadas</h2>
     <div class="filters">
       <input type="date" id="filter-fecha"><select id="filter-doctor"><option value="">Todos los cirujanos</option><option>Dr. Baldarrago</option><option>Dra. Portilla</option><option>Dr. Arce</option><option>Dr. Calle</option><option>Dr. Alpaca</option></select>
-      <select id="filter-semestre"><option value="">Todos los semestres</option><option>VIII Semestre</option><option>X Semestre</option></select><select id="filter-estado"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="realizadas">Realizadas</option></select><select id="filter-aut"><option value="">Autorización: todas</option><option value="Pendiente">Pendientes</option><option value="Autorizada">Autorizadas</option><option value="Anulada">Anuladas</option></select><button class="btn btn-ghost" id="clear">Limpiar</button>
+      <select id="filter-semestre"><option value="">Todos los semestres</option><option>VIII Semestre</option><option>X Semestre</option></select><select id="filter-estado"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="realizadas">Realizadas</option></select><select id="filter-aut"><option value="">Autorización: todas</option><option value="Pendiente">Pendientes</option><option value="Autorizada">Autorizadas</option><option value="Anulada">Anuladas</option></select><button class="btn btn-ghost" id="clear">Limpiar</button><button class="btn btn-ghost" id="export-csv" style="display:none">Exportar CSV</button>
     </div>
    </div>
    <div class="card table-card"><table><thead><tr><th>Orden</th><th>Fecha / hora</th><th>Proceso</th><th>Sala</th><th>Cirujano</th><th>Semestre</th><th>Alumno</th><th>Asistente</th><th>Paciente</th><th>Dx</th><th>Autorización</th><th></th></tr></thead><tbody id="tbody"><tr><td colspan="12" class="empty">Cargando registros…</td></tr></tbody></table></div>
@@ -165,9 +165,11 @@ let KEY='',ROLE='registrar',ALL=[],selectedChair=null,editingId=null,poll=null;
 
 function toMin(h){const [a,b]=String(h).slice(0,5).split(':').map(Number);return a*60+b}
 function durationFor(tipo){return DURATIONS[tipo]||0}
+function extensionFor(x){return Math.max(0,Number(x?.extension_minutos)||0)}
+function durationTotal(x){return durationFor(x?.tipo)+extensionFor(x)}
 function overlaps(a1,a2,b1,b2){return a1<b2&&a2>b1}
 function weekday(f){return new Date(f+'T00:00:00').getDay()}
-function pBlock(f,h,tipo){if(!f||!h||!tipo)return null;const e=PERIODONCIA.find(x=>x.day===weekday(f));if(!e)return null;const start=toMin(h),end=start+durationFor(tipo);const b=e.blocks.find(([a,z])=>overlaps(start,end,a,z));return b?{day:e.day,block:b}:null}
+function pBlock(f,h,tipo,extra=0){if(!f||!h||!tipo)return null;const e=PERIODONCIA.find(x=>x.day===weekday(f));if(!e)return null;const start=toMin(h),end=start+durationFor(tipo)+Math.max(0,Number(extra)||0);const b=e.blocks.find(([a,z])=>overlaps(start,end,a,z));return b?{day:e.day,block:b}:null}
 function fmtMin(m){let h=Math.floor(m/60)%24,mm=m%60,ap=h>=12?'p. m.':'a. m.';let hh=h%12||12;return `${hh}:${String(mm).padStart(2,'0')} ${ap}`}
 function fmt24(m){m=((m%1440)+1440)%1440;return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
 function renderSched(){const g=document.getElementById('sched-grid');g.innerHTML=PERIODONCIA.map(e=>`<div class="sched-row"><span class="sched-day">${DAY_NAMES[e.day]}</span><span class="sched-hours">${e.blocks.map(([a,z])=>`${fmtMin(a)} – ${fmtMin(z)}`).join(' · ')}</span></div>`).join('')}
@@ -211,12 +213,13 @@ function applyRole(){
  const admin=ROLE==='admin';
  document.getElementById('role-title').textContent=admin?'Administrador':'Registro de cirugías';
  document.getElementById('role-help').textContent=admin
-   ?'Puede autorizar, editar, marcar como realizada y eliminar registros.'
+   ?'Puede autorizar, editar, ampliar el tiempo, marcar como realizada, exportar y eliminar registros.'
    :'Acceso abierto para consultar la agenda y registrar nuevas solicitudes. Las nuevas quedan Pendientes.';
  const b=document.getElementById('role-badge');
  b.textContent=admin?'CONTROL TOTAL':'REGISTRO';
  b.className='badge '+(admin?'badge-admin':'badge-reg');
  document.getElementById('logout-btn').textContent=admin?'Salir de Admin':'Administrador';
+ document.getElementById('export-csv').style.display=admin?'inline-block':'none';
 }
 async function exitAdmin(){
  KEY='';
@@ -250,15 +253,17 @@ function resetChairs(){selectedChair=null;chairs.forEach(b=>{b.classList.remove(
 function refreshChair(){
  const f=document.getElementById('f-fecha').value,h=document.getElementById('f-hora').value,tipo=document.getElementById('f-tipo').value;const w=document.getElementById('alert-warn'),ok=document.getElementById('alert-ok');w.classList.remove('show');ok.classList.remove('show');resetChairs();if(!f||!h)return;
  if(!tipo){w.textContent='Selecciona el tipo de cirugía para calcular el tiempo de ocupación del sillón.';w.classList.add('show');return}
- const start=toMin(h),end=start+durationFor(tipo);
- const p=pBlock(f,h,tipo);if(p){chairs.filter(b=>['1','2'].includes(b.dataset.chair)).forEach(b=>{b.classList.add('blocked');b.querySelector('small').textContent='Periodoncia'});w.textContent=`La cirugía ocuparía el sillón de ${fmtMin(start)} a ${fmtMin(end)} y se cruza con Periodoncia (${DAY_NAMES[p.day]} ${fmtMin(p.block[0])} – ${fmtMin(p.block[1])}) en los sillones 1 y 2.`;w.classList.add('show')}
+ const editing=editingId?ALL.find(x=>x.id===editingId):null;
+ const extra=extensionFor(editing);
+ const start=toMin(h),end=start+durationFor(tipo)+extra;
+ const p=pBlock(f,h,tipo,extra);if(p){chairs.filter(b=>['1','2'].includes(b.dataset.chair)).forEach(b=>{b.classList.add('blocked');b.querySelector('small').textContent='Periodoncia'});w.textContent=`La cirugía ocuparía el sillón de ${fmtMin(start)} a ${fmtMin(end)} y se cruza con Periodoncia (${DAY_NAMES[p.day]} ${fmtMin(p.block[0])} – ${fmtMin(p.block[1])}) en los sillones 1 y 2.`;w.classList.add('show')}
  chairs.forEach(b=>{
    const ch=b.dataset.chair;
    const same=ALL.filter(x=>x.id!==editingId&&x.fecha===f&&String(x.sillon)===ch&&(x.autorizacion||'Pendiente')==='Autorizada');
-   const conflict=same.find(x=>overlaps(start,end,toMin(x.hora),toMin(x.hora)+durationFor(x.tipo)));
+   const conflict=same.find(x=>overlaps(start,end,toMin(x.hora),toMin(x.hora)+durationTotal(x)));
    if(conflict){
      b.classList.remove('blocked');b.classList.add('taken');
-     b.querySelector('small').textContent=`autorizado hasta ${fmt24(toMin(conflict.hora)+durationFor(conflict.tipo))}`;
+     b.querySelector('small').textContent=`autorizado hasta ${fmt24(toMin(conflict.hora)+durationTotal(conflict))}`;
    }
  });
  const free=chairs.filter(b=>!b.classList.contains('blocked')&&!b.classList.contains('taken')).length;if(free&&!p){ok.textContent=`${free} de 4 sillones disponibles para ${fmtMin(start)} – ${fmtMin(end)}. Las solicitudes Pendientes no bloquean; solo las Autorizadas reservan el sillón.`;ok.classList.add('show')}
@@ -288,12 +293,89 @@ function renderTable(){
  if(ff)a=a.filter(x=>x.fecha===ff);if(fd)a=a.filter(x=>x.doctor===fd);if(fs)a=a.filter(x=>x.semestre===fs);if(fa)a=a.filter(x=>(x.autorizacion||'Pendiente')===fa);const td=new Date().toISOString().slice(0,10);if(fe==='proximas')a=a.filter(x=>!x.realizada&&x.fecha>=td);if(fe==='realizadas')a=a.filter(x=>x.realizada);
  const orderMap=new Map([...ALL].sort((x,y)=>(Number(x.creado)||0)-(Number(y.creado)||0)).map((x,i)=>[x.id,i+1]));a.sort((x,y)=>(Number(x.creado)||0)-(Number(y.creado)||0));const tb=document.getElementById('tbody');
  if(!a.length){tb.innerHTML='<tr><td colspan="12"><div class="empty"><strong>Sin cirugías registradas</strong><br>Ajusta los filtros o registra una nueva cirugía.</div></td></tr>';return}
- const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';const ini=toMin(x.hora),fin=ini+durationFor(x.tipo);const aut=x.autorizacion||'Pendiente';const autCls=aut==='Autorizada'?'tag-autorizada':aut==='Anulada'?'tag-anulada':'tag-pendiente';let act='';if(admin){const authControl=aut==='Anulada'?`<span class="tag tag-anulada" title="Esta solicitud ya no puede autorizarse">No autorizable</span>`:`<button class="auth-btn" onclick="toggleAuth('${x.id}')" title="Cambiar autorización">${aut==='Autorizada'?'Volver a pendiente':'Autorizar'}</button>`;act=`<div class="actions">${authControl}<button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;}return `<tr class="${x.realizada?'done':''}"><td data-label="Orden"><strong>#${orderMap.get(x.id)||'—'}</strong></td><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${fmt24(ini)}–${fmt24(fin)}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Semestre">${esc(x.semestre)||'—'}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td data-label="Autorización"><span class="tag ${autCls}">${aut}</span></td><td>${act}</td></tr>`}).join('')
+ const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';const ini=toMin(x.hora),extra=extensionFor(x),fin=ini+durationTotal(x);const aut=x.autorizacion||'Pendiente';const autCls=aut==='Autorizada'?'tag-autorizada':aut==='Anulada'?'tag-anulada':'tag-pendiente';let act='';if(admin){const authControl=aut==='Anulada'?`<span class="tag tag-anulada" title="Esta solicitud ya no puede autorizarse">No autorizable</span>`:`<button class="auth-btn" onclick="toggleAuth('${x.id}')" title="Cambiar autorización">${aut==='Autorizada'?'Volver a pendiente':'Autorizar'}</button>`;const timeControl=aut==='Autorizada'?`<button class="auth-btn" onclick="extendTime('${x.id}')" title="Aumentar el tiempo reservado en este sillón">+ Tiempo</button>`:'';act=`<div class="actions">${authControl}${timeControl}<button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;}return `<tr class="${x.realizada?'done':''}"><td data-label="Orden"><strong>#${orderMap.get(x.id)||'—'}</strong></td><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${fmt24(ini)}–${fmt24(fin)}${extra?` · +${extra} min`:''}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Semestre">${esc(x.semestre)||'—'}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td data-label="Autorización"><span class="tag ${autCls}">${aut}</span></td><td>${act}</td></tr>`}).join('')
 }
 window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','semestre','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
 window.toggleAuth=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;const current=x.autorizacion||'Pendiente';if(current==='Anulada'){showToast('Esta solicitud fue anulada y ya no puede autorizarse.',true);return}const next=current==='Autorizada'?'Pendiente':'Autorizada';try{await request('PATCH',{id,autorizacion:next});showToast(next==='Autorizada'?'Cirugía autorizada. Los conflictos Pendientes del mismo sillón fueron anulados automáticamente.':'Cirugía devuelta a Pendiente.');await load()}catch(e){showToast(e.message,true)}}
+
+window.extendTime=async id=>{
+ if(ROLE!=='admin')return;
+ const x=ALL.find(v=>v.id===id);
+ if(!x)return;
+ if((x.autorizacion||'Pendiente')!=='Autorizada'){
+   showToast('Solo se puede ampliar una cirugía autorizada.',true);return;
+ }
+ const actual=extensionFor(x);
+ const raw=prompt(`Minutos adicionales que deseas agregar.\n\nExtensión actual: ${actual} min\nEjemplos: 15, 30, 45, 60`, '30');
+ if(raw===null)return;
+ const add=Number(String(raw).trim());
+ if(!Number.isInteger(add)||add<=0||add>240){
+   showToast('Ingresa entre 1 y 240 minutos adicionales.',true);return;
+ }
+ const total=actual+add;
+ if(total>480){
+   showToast('La extensión total no puede superar 480 minutos.',true);return;
+ }
+ try{
+   await request('PATCH',{id,extension_minutos:total});
+   const fin=toMin(x.hora)+durationFor(x.tipo)+total;
+   showToast(`Tiempo ampliado +${add} min. Nuevo término: ${fmt24(fin)}.`);
+   await load();
+ }catch(e){
+   showToast(e.message,true);
+ }
+}
+
 window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);try{await request('PATCH',{id,realizada:!x.realizada});showToast('Estado actualizado.');await load()}catch(e){showToast(e.message,true)}}
 window.delItem=async id=>{if(ROLE!=='admin'||!confirm('¿Eliminar esta cirugía del registro?'))return;try{await request('DELETE',null,id);showToast('Registro eliminado.');await load()}catch(e){showToast(e.message,true)}}
+
+function csvSafe(value){
+ let s=String(value??'').replace(/\r?\n/g,' ').trim();
+ // Evita que Excel interprete fórmulas en contenido ingresado por usuarios.
+ if(/^[=+\-@]/.test(s))s="'"+s;
+ return '"'+s.replace(/"/g,'""')+'"';
+}
+function exportCSV(){
+ if(ROLE!=='admin'){showToast('Solo el Administrador puede exportar.',true);return}
+ const rows=[...ALL].sort((a,b)=>(Number(a.creado)||0)-(Number(b.creado)||0));
+ const headers=['Orden','Estado','Tipo de cirugía','Fecha','Hora inicio','Hora fin','Extensión (min)','Sillón','Semestre','Cirujano','Alumno','Asistente','Paciente','Diagnóstico','Realizada'];
+ const lines=[headers.map(csvSafe).join(';')];
+ rows.forEach((x,i)=>{
+   const ini=toMin(x.hora);
+   const fin=ini+durationTotal(x);
+   const hh=String(Math.floor(fin/60)%24).padStart(2,'0')+':'+String(fin%60).padStart(2,'0');
+   const row=[
+     i+1,
+     x.autorizacion||'Pendiente',
+     x.tipo,
+     x.fecha,
+     String(x.hora||'').slice(0,5),
+     hh,
+     extensionFor(x),
+     x.sillon,
+     x.semestre||'',
+     x.doctor,
+     x.alumno,
+     x.asistente||'',
+     x.paciente,
+     x.dx,
+     x.realizada?'Sí':'No'
+   ];
+   lines.push(row.map(csvSafe).join(';'));
+ });
+ const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download='cirugias_'+new Date().toISOString().slice(0,10)+'.csv';
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ showToast('Archivo CSV exportado.');
+}
+document.getElementById('export-csv').onclick=exportCSV;
+
 ['filter-fecha','filter-doctor','filter-semestre','filter-estado','filter-aut'].forEach(id=>document.getElementById(id).onchange=renderTable);document.getElementById('clear').onclick=()=>{document.getElementById('filter-fecha').value='';document.getElementById('filter-doctor').value='';document.getElementById('filter-semestre').value='';document.getElementById('filter-estado').value='todas';document.getElementById('filter-aut').value='';renderTable()}
 function startPoll(){clearInterval(poll);poll=setInterval(()=>load().catch(()=>{}),10000)}
 (async()=>{
