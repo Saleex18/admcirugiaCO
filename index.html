@@ -176,10 +176,16 @@ function renderSched(){const g=document.getElementById('sched-grid');g.innerHTML
 renderSched();
 
 async function request(method='GET',body=null,id=null){
- const u=id?`${API}?id=${encodeURIComponent(id)}`:API;
+ let u=id?`${API}?id=${encodeURIComponent(id)}`:API;
+ if(method==='GET')u+=(u.includes('?')?'&':'?')+`_t=${Date.now()}`;
  const headers={'Content-Type':'application/json'};
  if(KEY) headers['x-access-key']=KEY;
- const r=await fetch(u,{method,headers,body:body?JSON.stringify(body):undefined});
+ const r=await fetch(u,{
+   method,
+   headers,
+   body:body?JSON.stringify(body):undefined,
+   cache:'no-store'
+ });
  let data={};try{data=await r.json()}catch{}
  if(!r.ok)throw new Error(data.error||'Error de conexión');
  return data
@@ -287,6 +293,15 @@ document.getElementById('form').onsubmit=async e=>{
 }
 
 async function load(){const d=await request();ROLE=d.role;ALL=d.items||[];applyRole();renderTable();refreshChair()}
+function applyServerItems(result){
+ if(result&&Array.isArray(result.items)){
+   ALL=result.items;
+   renderTable();
+   refreshChair();
+   return true;
+ }
+ return false;
+}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function renderTable(){
  let a=[...ALL],ff=document.getElementById('filter-fecha').value,fd=document.getElementById('filter-doctor').value,fs=document.getElementById('filter-semestre').value,fe=document.getElementById('filter-estado').value,fa=document.getElementById('filter-aut').value;
@@ -296,7 +311,7 @@ function renderTable(){
  const admin=ROLE==='admin';tb.innerHTML=a.map(x=>{const f=new Date(x.fecha+'T00:00:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'});const cls=x.tipo==='Cirugía Compleja'?'tag-compleja':'tag-simple';const ini=toMin(x.hora),extra=extensionFor(x),fin=ini+durationTotal(x);const aut=x.autorizacion||'Pendiente';const autCls=aut==='Autorizada'?'tag-autorizada':aut==='Anulada'?'tag-anulada':'tag-pendiente';let act='';if(admin){const authControl=aut==='Anulada'?`<span class="tag tag-anulada" title="Esta solicitud ya no puede autorizarse">No autorizable</span>`:`<button class="auth-btn" onclick="toggleAuth('${x.id}')" title="Cambiar autorización">${aut==='Autorizada'?'Volver a pendiente':'Autorizar'}</button>`;const timeControl=aut==='Autorizada'?`<button class="auth-btn" onclick="extendTime('${x.id}')" title="Aumentar el tiempo reservado en este sillón">+ Tiempo</button>`:'';act=`<div class="actions">${authControl}${timeControl}<button class="icon-btn" onclick="editItem('${x.id}')" title="Editar">✎</button><button class="icon-btn" onclick="toggleDone('${x.id}')" title="Realizada">${x.realizada?'↺':'✓'}</button><button class="icon-btn" onclick="delItem('${x.id}')" title="Eliminar">✕</button></div>`;}return `<tr class="${x.realizada?'done':''}"><td data-label="Orden"><strong>#${orderMap.get(x.id)||'—'}</strong></td><td data-label="Fecha / hora"><span class="cell-fecha">${f}<span class="hora">${fmt24(ini)}–${fmt24(fin)}${extra?` · +${extra} min`:''}</span></span></td><td data-label="Proceso"><span class="tag ${cls}">${esc(x.tipo)}</span></td><td data-label="Sala">Sillón ${esc(x.sillon)}</td><td data-label="Cirujano">${esc(x.doctor)}</td><td data-label="Semestre">${esc(x.semestre)||'—'}</td><td data-label="Alumno">${esc(x.alumno)}</td><td data-label="Asistente">${esc(x.asistente)||'—'}</td><td data-label="Paciente">${esc(x.paciente)}</td><td data-label="Dx">${esc(x.dx)}</td><td data-label="Autorización"><span class="tag ${autCls}">${aut}</span></td><td>${act}</td></tr>`}).join('')
 }
 window.editItem=id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;editingId=id;['tipo','fecha','doctor','semestre','alumno','asistente','paciente','dx'].forEach(k=>document.getElementById('f-'+k).value=x[k]??'');document.getElementById('f-hora').value=String(x.hora).slice(0,5);refreshChair();const ch=chairs.find(b=>b.dataset.chair===String(x.sillon));if(ch&&!ch.classList.contains('blocked')&&!ch.classList.contains('taken')){ch.classList.add('selected');selectedChair=String(x.sillon)}document.getElementById('form-title').textContent='Editar cirugía';document.getElementById('form-sub').textContent='Solo el Administrador puede modificar un registro existente.';document.getElementById('save-btn').textContent='Guardar cambios';document.getElementById('cancel-edit').style.display='block';window.scrollTo({top:0,behavior:'smooth'})}
-window.toggleAuth=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;const current=x.autorizacion||'Pendiente';if(current==='Anulada'){showToast('Esta solicitud fue anulada y ya no puede autorizarse.',true);return}const next=current==='Autorizada'?'Pendiente':'Autorizada';try{await request('PATCH',{id,autorizacion:next});showToast(next==='Autorizada'?'Cirugía autorizada. Los conflictos Pendientes del mismo sillón fueron anulados automáticamente.':'Cirugía devuelta a Pendiente.');await load()}catch(e){showToast(e.message,true)}}
+window.toggleAuth=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);if(!x)return;const current=x.autorizacion||'Pendiente';if(current==='Anulada'){showToast('Esta solicitud fue anulada y ya no puede autorizarse.',true);return}const next=current==='Autorizada'?'Pendiente':'Autorizada';try{const result=await request('PATCH',{id,autorizacion:next});if(!applyServerItems(result))await load();showToast(next==='Autorizada'?'Cirugía autorizada. Las solicitudes Pendientes que se cruzan en ese sillón fueron anuladas automáticamente.':'Cirugía devuelta a Pendiente.')}catch(e){showToast(e.message,true)}}
 
 window.extendTime=async id=>{
  if(ROLE!=='admin')return;
@@ -317,16 +332,17 @@ window.extendTime=async id=>{
    showToast('La extensión total no puede superar 480 minutos.',true);return;
  }
  try{
-   await request('PATCH',{id,extension_minutos:total});
+   const result=await request('PATCH',{id,extension_minutos:total});
+   if(!applyServerItems(result))await load();
    const fin=toMin(x.hora)+durationFor(x.tipo)+total;
-   showToast(`Tiempo ampliado +${add} min. Nuevo término: ${fmt24(fin)}.`);
-   await load();
+   const anuladas=(result?.items||[]).filter(v=>v.autorizacion==='Anulada').length;
+   showToast(`Tiempo ampliado +${add} min. Nuevo término: ${fmt24(fin)}.${anuladas?' Conflictos actualizados.':''}`);
  }catch(e){
    showToast(e.message,true);
  }
 }
 
-window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);try{await request('PATCH',{id,realizada:!x.realizada});showToast('Estado actualizado.');await load()}catch(e){showToast(e.message,true)}}
+window.toggleDone=async id=>{if(ROLE!=='admin')return;const x=ALL.find(v=>v.id===id);try{const result=await request('PATCH',{id,realizada:!x.realizada});if(!applyServerItems(result))await load();showToast('Estado actualizado.')}catch(e){showToast(e.message,true)}}
 window.delItem=async id=>{if(ROLE!=='admin'||!confirm('¿Eliminar esta cirugía del registro?'))return;try{await request('DELETE',null,id);showToast('Registro eliminado.');await load()}catch(e){showToast(e.message,true)}}
 
 function csvSafe(value){
